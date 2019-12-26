@@ -63,6 +63,7 @@ VIC: {
 	.label SPRITE_COLOR_7 = $d02e
 
 	.label COLOR_RAM = $d800
+	.label SCREEN_RAM = $0400
 }
 
 

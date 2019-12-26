@@ -1,9 +1,11 @@
 #import  "./libs/vic.asm"
+#import "./libs/setup.asm"
 
 BasicUpstart2(Entry)
 
 
 Entry:
+			jsr Setup.ClearScreen
 			jmp SetupSprites
 			rts
 
