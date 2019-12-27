@@ -1,12 +1,9 @@
-
-
-
 Dinosaur: {
 * = $0830
 //data 
 	.label RUNNING_DELAY = $10
 	.label JUMP_COUNTER_INIT = $40
-	.label RUNNING_LAST_FRAME = $04
+	.label RUNNING_LAST_FRAME = LAST_FRAME-running_frames
 
 	.label STANDING_STATE = %00000000
 	.label RUNNING_STATE  = %00000001
@@ -19,8 +16,10 @@ Dinosaur: {
 	running_delay_counter: .byte RUNNING_DELAY
 
 	running_frame_index: .byte $00
-	running_frames: .byte $c1, $c2, $c1, $c2, $c2, $c3, $c4, $c5
+	running_frames: .byte $c1, $c2
+	LAST_FRAME:
 
+	//jump_sine: .fill 10, 127.5 + 127.5*sin(toRadians(i*360/256)) // Generates a sine curve
 * = $0850	
 	Setup:
 
