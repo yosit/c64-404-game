@@ -64,6 +64,8 @@ VIC: {
 
 	.label COLOR_RAM = $d800
 	.label SCREEN_RAM = $0400
+
+	.label JOYSTICK_1 = $dc01
 }
 
 

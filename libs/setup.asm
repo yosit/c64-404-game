@@ -1,7 +1,7 @@
 Setup: {
 	ClearScreen: {
-		//clear the screen - 24 lines over 40 chars
-		lda #$00
+		//clear the screen - 25 lines over 40 chars => divided by 4 it's 250
+		lda #$20
 		ldx #250
 	!:	
 		dex
