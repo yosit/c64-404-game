@@ -9,6 +9,9 @@ Dinosaur: {
 	.label RUNNING_STATE  = %00000001
 	.label JUMPING_STATE  = %00000010
 
+	.label SPRITE_0_X_INDEX 	= $c0
+	.label SPRITE_0_X_INITIAL_POSITION 	= $40
+	.label SPRITE_0_Y_INITIAL_POSITION	= $80
 
 	state: .byte RUNNING_STATE
 
@@ -20,7 +23,7 @@ Dinosaur: {
 	LAST_FRAME:
 
 	//we're capping the sine wave by the max height and subtracting it from the initial x value
-	jump_sine: .fill 128, INITIAL_SETTINGS.SPRITE_0_Y_INITIAL_POSITION - sin((i/128) * (PI*2) * 0.5) * 30
+	jump_sine: .fill 128, SPRITE_0_Y_INITIAL_POSITION - sin((i/128) * (PI*2) * 0.5) * 30
 	JUMP_SINE_END:
 
 	//jump_sine: .fill 10, 127.5 + 127.5*sin(toRadians(i*360/256)) // Generates a sine curve
@@ -29,13 +32,13 @@ Dinosaur: {
 
 			//set the frame of the sprite relative to the charset (default starts at $0000 and $c0 means $3000)
 			lda #$c0
-			lda #INITIAL_SETTINGS.SPRITE_0_X_INDEX
+			lda #SPRITE_0_X_INDEX
 			sta VIC.SPRITE_0_POINTER
 
 			//set the initial position
-			lda #INITIAL_SETTINGS.SPRITE_0_X_INITIAL_POSITION
+			lda #SPRITE_0_X_INITIAL_POSITION
 			sta VIC.SPRITE_0_X
-			lda #INITIAL_SETTINGS.SPRITE_0_Y_INITIAL_POSITION
+			lda #SPRITE_0_Y_INITIAL_POSITION
 			sta VIC.SPRITE_0_Y
 
 			//We're enabling only the dinosaur sprite

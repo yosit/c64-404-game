@@ -6,7 +6,7 @@ BasicUpstart2(Entry)
 
 
 Entry:
-			jsr Setup.ClearScreen
+			jsr Setup.Init
 			jsr Dinosaur.Setup
 
 		raster:
@@ -22,7 +22,7 @@ Entry:
 			rts
 
 
-* = $3000 "sprites"
-	#import  "./data/sprites.asm"
 
+* = $7000 "sprites"
+	#import  "./data/sprites.asm"
 

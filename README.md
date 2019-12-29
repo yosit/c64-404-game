@@ -7,5 +7,6 @@ Tools:
 Sublime + kickass plugin
 c64debugger
 vice
+vchar64
 
 Heavily insipired by Shallan and his excellent youtube channel [https://www.youtube.com/channel/UCFjZzzJO_rXmr4FeBSf2rcQ]
