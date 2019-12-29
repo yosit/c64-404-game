@@ -8,6 +8,7 @@ BasicUpstart2(Entry)
 Entry:
 			jsr Setup.Init
 			jsr Dinosaur.Setup
+			jsr Screen.DrawTile
 
 		raster:
 			lda #$20
@@ -16,6 +17,9 @@ Entry:
 			bne !-
 			inc $d020
 			jsr Dinosaur.Update
+		dd:
+			jsr Screen.DrawTile
+
 			dec $d020
 			jmp raster 
 

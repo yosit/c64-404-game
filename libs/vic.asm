@@ -62,7 +62,7 @@ VIC: {
 	.label SPRITE_COLOR_6 = $d02d
 	.label SPRITE_COLOR_7 = $d02e
 
-	.label COLOR_RAM = $d800
+	//.label COLOR_RAM = $d800
 	.label SCREEN_RAM = $5000
 
 	.label JOYSTICK_1 = $dc01

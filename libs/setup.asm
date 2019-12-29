@@ -1,5 +1,4 @@
 #import "./screen.asm"
-
 Setup: {
 
 	Init: {
