@@ -1,7 +1,7 @@
 #import "./screen.asm"
 Setup: {
 
-	Init: {
+	init: {
 		jsr ClearScreen
 		lda VIC.BANK
 		and #%11111110
@@ -14,9 +14,8 @@ Setup: {
 		rts
 	}
 	ClearScreen: {
-		rts
 		//clear the screen - 25 lines over 40 chars => divided by 4 it's 250
-		lda #$20
+		lda #$ff
 		ldx #250
 	!:	
 		dex

@@ -1,25 +1,38 @@
 *=$0950 "Screen Code"
 Screen: {
-	tile_location: 	.byte 0,1,2,40,41,42,80,81,82
+	TileTable: 	.byte 0,1,2,40,41,42,80,81,82
+	NextTile: .byte $01
+	TileY: .byte $00
+	.label TileLookup = TileAbsolutePosition
+	LandStart: .word VIC.SCREEN_RAM+40*12
+	
 
 	DrawTile: {
-		.label TILE = $00
+						//initialize start address
+		lda LandStart
+		sta TileAbsolutePosition
+		lda LandStart+1
+		sta TileAbsolutePosition+1
+						//calculate the first position for the tile in the font
 		clc
-		lda #TILE //we're multiplying by 9 because a tile is 3X3
-		asl
-		asl
-		asl
-		adc #TILE
-		ldy #$00
+		lda TileY
+		adc TileAbsolutePosition
+		bcc !+
+		inc TileAbsolutePosition+1
+	!:	sta TileAbsolutePosition
+
+		multiplyby9(NextTile)
+		ldx #$00
 	!:		
-		ldx tile_location,y
-		sta VIC.SCREEN_RAM,x
+		ldy TileTable,x
+		sta (TileLookup),y
 		adc #$01
-		iny
-		cpy #$09
+		inx
+		cpx #$09
 		bne !-
 		rts
 	}
+
 }
 
 

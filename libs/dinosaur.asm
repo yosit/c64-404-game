@@ -1,5 +1,5 @@
 Dinosaur: {
-* = $0830 "Dinosaur data"
+* = * "Dinosaur data"
 //data 
 	.label RUNNING_DELAY = $10
 	.label RUNNING_LAST_FRAME = LAST_FRAME-running_frames

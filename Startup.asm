@@ -1,12 +1,17 @@
+#import "./libs/zeropage.asm"
+#import "./libs/macros.asm"
 #import "./libs/vic.asm"
 #import "./libs/setup.asm"
+#import "./libs/utils.asm"
 #import "./libs/dinosaur.asm"
+
 
 BasicUpstart2(Entry)
 
 
 Entry:
-			jsr Setup.Init
+			jsr Random.init
+			jsr Setup.init
 			jsr Dinosaur.Setup
 			jsr Screen.DrawTile
 
@@ -16,6 +21,7 @@ Entry:
 			cmp $d012
 			bne !-
 			inc $d020
+			jsr Random
 			jsr Dinosaur.Update
 		dd:
 			jsr Screen.DrawTile
