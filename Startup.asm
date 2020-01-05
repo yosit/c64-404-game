@@ -4,6 +4,7 @@
 #import "./libs/setup.asm"
 #import "./libs/utils.asm"
 #import "./libs/dinosaur.asm"
+#import "./libs/irq.asm"
 
 
 BasicUpstart2(Entry)
@@ -14,6 +15,14 @@ Entry:
 			jsr Setup.init
 			jsr Dinosaur.Setup
 			jsr Screen.DrawTile
+			jsr IRQ.Setup
+			
+		//Bank out BASIC and Kernal ROM
+		lda $01
+		and #%11111000 
+		ora #%00000101
+		sta $01
+			jmp *
 
 		raster:
 			lda #$20
@@ -21,11 +30,10 @@ Entry:
 			cmp $d012
 			bne !-
 			inc $d020
-			jsr Random
 			jsr Dinosaur.Update
-		dd:
-			jsr Screen.DrawTile
+			jsr Screen.DrawLand
 
+		dd:
 			dec $d020
 			jmp raster 
 
