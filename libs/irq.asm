@@ -16,7 +16,7 @@ IRQ: {
 		sta $fffe   // 0314
 		stx $ffff	// 0315
 
-		lda #$e2
+		lda #$20
 		sta $d012
 		lda $d011
 		and #%01111111
@@ -29,15 +29,15 @@ IRQ: {
 
 	MainIRQ: {		
 		:StoreState()
+			inc $d020
 			jsr Dinosaur.Update
-			jsr Screen.DrawLand
-
-			lda #<SecondIRQ    
-			ldx #>SecondIRQ
+			dec $d020
+			lda #<ScrollIRQ    
+			ldx #>ScrollIRQ
 			sta $fffe   // 0314
 			stx $ffff	// 0315
 
-			lda #$00
+			lda #$90
 			sta $d012
 			lda $d011
 			and #%11111111
@@ -49,15 +49,40 @@ IRQ: {
 	}
 
 
-	SecondIRQ: {
+	ScrollIRQ: {
 		:StoreState()
-			//Reset Values set by IRQ	
+			inc $d020
+			jsr Screen.ScrollScreen
+			//Reset Values set by IRQ
+			lda #<ResetIRQ    
+			ldx #>ResetIRQ
+			sta $fffe   // 0314
+			stx $ffff	// 0315
+
+			lda #$b0
+			sta $d012
+			lda $d011
+			and #%11111111
+			sta $d011	
+
+			asl $d019 //Acknowledging the interrupt
+		:RestoreState();
+		rti
+	}
+
+	ResetIRQ: {
+		:StoreState()
+			dec $d020
+
+			lda #$c8
+			sta VIC.SCREEN_CONTROL_2
+			//Reset Values set by IRQ
 			lda #<MainIRQ    
 			ldx #>MainIRQ
 			sta $fffe   // 0314
 			stx $ffff	// 0315
 
-			lda #$50
+			lda #$20
 			sta $d012
 			lda $d011
 			and #%01111111

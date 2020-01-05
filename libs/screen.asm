@@ -1,5 +1,37 @@
 *=$0950 "Screen Code"
 Screen: {
+
+	ScrollScreen: {
+		lda realOffset
+		ldx delay
+		dex
+		bne !+
+
+		sec
+		lda offset
+		sbc #$01
+		and #$07
+		sta offset
+
+		clc
+		lda VIC.SCREEN_CONTROL_2
+		and #$f8
+		adc offset
+		sta realOffset
+
+		ldx #delayScroll
+	!:
+		sta VIC.SCREEN_CONTROL_2
+		stx delay
+		rts
+
+	}
+	realOffset: .byte $c8
+	offset: .byte $07
+	delay: .byte delayScroll
+	.label delayScroll = $10
+
+
 	TileTable: 	.byte 0, 1, 2, 40, 41, 42, 80, 81, 82
 	MultiplyBy3: .fill 15, i * $3 //0,3,6,9,12,15,18,21,24,27,30,33,36
 	LandTiles: .byte 1,2,1,2,1,2,1,2

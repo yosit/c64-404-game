@@ -14,14 +14,14 @@ Entry:
 			jsr Random.init
 			jsr Setup.init
 			jsr Dinosaur.Setup
-			jsr Screen.DrawTile
+			jsr Screen.DrawLand
 			jsr IRQ.Setup
 			
-		//Bank out BASIC and Kernal ROM
-		lda $01
-		and #%11111000 
-		ora #%00000101
-		sta $01
+			//Bank out BASIC and Kernal ROM
+			lda $01
+			and #%11111000 
+			ora #%00000101
+			sta $01
 			jmp *
 
 		raster:
