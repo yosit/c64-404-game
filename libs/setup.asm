@@ -11,6 +11,7 @@ Setup: {
 		lda #%01000000       //this would setup the character rom at $4000 and screen at %5000
 		sta VIC.MEMORY_SETUP
 
+		jsr Screen.DrawLand
 		rts
 	}
 	ClearScreen: {
