@@ -1,12 +1,10 @@
-*=$0950 "Screen Code"
+*=* "Screen Code"
 Screen: {
-
 	ScrollScreen: {
 		lda realOffset
 		ldx delay
 		dex
 		bne !+
-
 		sec
 		lda offset
 		sbc #$01
@@ -24,13 +22,27 @@ Screen: {
 		sta VIC.SCREEN_CONTROL_2
 		stx delay
 		rts
+	}
 
+	ScrollThirdTile: {
+		ldx #$00
+	!:
+		lda LandStart+1,x
+		sta LandStart,x
+		lda LandStart+41,x
+		sta LandStart+40,x
+		lda LandStart+81,x
+		sta LandStart+80,x
+		inx
+		cpx #$27
+		bne !-
+		rts
 	}
 	realOffset: .byte $c8
 	offset: .byte $07
 	delay: .byte delayScroll
 	.label delayScroll = $10
-
+	scrolledTile: .byte $03
 
 	TileTable: 	.byte 0, 1, 2, 40, 41, 42, 80, 81, 82
 	MultiplyBy3: .fill 15, i * $3 //0,3,6,9,12,15,18,21,24,27,30,33,36
@@ -92,9 +104,4 @@ Screen: {
 }
 
 
-* = $4000 "Charset"
-.import binary "./../data/everything-charset.bin"
-* = * "Map"
-Map:
-.import binary "./../data/everything-map.bin"
 

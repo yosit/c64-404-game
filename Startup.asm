@@ -1,14 +1,14 @@
 #import "./libs/zeropage.asm"
 #import "./libs/macros.asm"
 #import "./libs/vic.asm"
+BasicUpstart2(Entry)
+#import "./libs/screen.asm"
+#import "./libs/irq.asm"
 #import "./libs/setup.asm"
 #import "./libs/utils.asm"
+
 #import "./libs/dinosaur.asm"
-#import "./libs/irq.asm"
-
-
-BasicUpstart2(Entry)
-
+#import "./libs/charset.asm"
 
 Entry:
 			jsr Random.init
@@ -16,7 +16,7 @@ Entry:
 			jsr Dinosaur.Setup
 			jsr Screen.DrawLand
 			jsr IRQ.Setup
-			
+
 			//Bank out BASIC and Kernal ROM
 			lda $01
 			and #%11111000 
@@ -41,6 +41,5 @@ Entry:
 
 
 
-* = $7000 "sprites"
-	#import  "./data/sprites.asm"
+
 
