@@ -31,6 +31,7 @@ IRQ: {
 		:StoreState()
 			inc $d020
 			jsr Dinosaur.Update
+			jsr Screen.Update
 			dec $d020
 			lda #<ScrollIRQ    
 			ldx #>ScrollIRQ
@@ -52,7 +53,7 @@ IRQ: {
 	ScrollIRQ: {
 		:StoreState()
 			inc $d020
-			jsr Screen.ScrollScreen
+			jsr Screen.UpdateScrollState
 			//Reset Values set by IRQ
 			lda #<ResetIRQ    
 			ldx #>ResetIRQ

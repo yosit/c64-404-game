@@ -1,5 +1,17 @@
 *=* "Screen Code"
 Screen: {
+
+	Update: {
+		jsr ScrollScreen
+		rts
+	}
+
+	UpdateScrollState: {
+		lda realOffset
+		sta VIC.SCREEN_CONTROL_2
+		rts
+	}
+
 	ScrollScreen: {
 		lda realOffset
 		ldx delay
@@ -16,32 +28,41 @@ Screen: {
 		and #$f8
 		adc offset
 		sta realOffset
-
+		pha
+		jsr ScrollThirdTile
+		pla
 		ldx #delayScroll
 	!:
-		sta VIC.SCREEN_CONTROL_2
 		stx delay
 		rts
 	}
 
 	ScrollThirdTile: {
+		inc $d020
+		lda realOffset      //scroll the tiles only if we need to
+		and #$07  			//if the screen is on the top most right position we need to scroll the tiles.
+		cmp #$07
+		bne !++
 		ldx #$00
 	!:
-		lda LandStart+1,x
-		sta LandStart,x
-		lda LandStart+41,x
-		sta LandStart+40,x
-		lda LandStart+81,x
-		sta LandStart+80,x
+		lda LandStartAddress+1,x
+		sta LandStartAddress,x
+		lda LandStartAddress+$29,x
+		sta LandStartAddress+$28,x
+		lda LandStartAddress+$51,x
+		sta LandStartAddress+$50,x
 		inx
 		cpx #$27
 		bne !-
+	!:	
+		dec $d020
 		rts
 	}
+	* = * "realoffset"
 	realOffset: .byte $c8
 	offset: .byte $07
 	delay: .byte delayScroll
-	.label delayScroll = $10
+	.label delayScroll = $01
 	scrolledTile: .byte $03
 
 	TileTable: 	.byte 0, 1, 2, 40, 41, 42, 80, 81, 82
@@ -51,7 +72,7 @@ Screen: {
 	TileY: .byte $00
 	.label TileLookup = TileAbsolutePosition
 	LandStart: .word VIC.SCREEN_RAM+40*12
-	
+	.label LandStartAddress = VIC.SCREEN_RAM+40*12
 	DrawLand: {
 		ldy #$00
 	!:
@@ -73,9 +94,9 @@ Screen: {
 		rts
 	}
 
-	DrawTile: {    // function DrawTile(TileY, NextTile)
-				   // TileY: the exact Y Position on screen to put the tile.
-				   // NextTile: The tile index
+	DrawTile: {   		// function DrawTile(TileY, NextTile)
+					    // TileY: the exact Y Position on screen to put the tile.
+					    // NextTile: The tile index
 						//initialize start address
 		lda LandStart
 		sta TileAbsolutePosition
@@ -100,7 +121,19 @@ Screen: {
 		bne !-
 		rts
 	}
-
+	ClearScreen: {
+		//clear the screen - 25 lines over 40 chars => divided by 4 it's 250
+		lda #$ff
+		ldx #250
+	!:	
+		dex
+		sta VIC.SCREEN_RAM, x
+		sta VIC.SCREEN_RAM + 250, x
+		sta VIC.SCREEN_RAM + 250*2, x
+		sta VIC.SCREEN_RAM + 250*3, x
+		bne !-
+		rts
+	}
 }
 
 
