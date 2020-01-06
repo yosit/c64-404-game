@@ -11,7 +11,7 @@ Dinosaur: {
 
 	.label SPRITE_0_X_INDEX 	= $c0
 	.label SPRITE_0_X_INITIAL_POSITION 	= $40
-	.label SPRITE_0_Y_INITIAL_POSITION	= $80
+	.label SPRITE_0_Y_INITIAL_POSITION	= $90
 
 	state: .byte RUNNING_STATE
 

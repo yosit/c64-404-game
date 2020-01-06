@@ -53,7 +53,7 @@ IRQ: {
 	ScrollIRQ: {
 		:StoreState()
 			inc $d020
-			jsr Screen.UpdateScrollState
+			jsr Screen.UpdateScrollState //we don't have enough cycles to take care of the actual scrolling so we just update the scroll state here
 			//Reset Values set by IRQ
 			lda #<ResetIRQ    
 			ldx #>ResetIRQ

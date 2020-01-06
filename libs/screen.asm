@@ -36,13 +36,13 @@ Screen: {
 		stx delay
 		rts
 	}
-
+*=* "ScrollThirdTile"
 	ScrollThirdTile: {
 		inc $d020
 		lda realOffset      //scroll the tiles only if we need to
 		and #$07  			//if the screen is on the top most right position we need to scroll the tiles.
 		cmp #$07
-		bne !++
+		bne skip
 		ldx #$00
 	!:
 		lda LandStartAddress+1,x
@@ -55,10 +55,28 @@ Screen: {
 		cpx #$27
 		bne !-
 	!:	
+		ldx scrollTileComplete //check if we need to add another tile on the far right side when we scrolled 3 chars.
+		dex
+		bne !+
+
+		lda #$24     		//calculate the y coordinate of the tile
+		sta TileY			//store it for the drawing function
+		jsr Random
+		and #%00000111
+		tay
+		lda LandTiles,y
+		sta NextTile
+		jsr DrawTile		
+
+		ldx #$03
+	!:
+		stx scrollTileComplete
+	skip:
 		dec $d020
 		rts
 	}
 	* = * "realoffset"
+	scrollTileComplete: .byte $03
 	realOffset: .byte $c8
 	offset: .byte $07
 	delay: .byte delayScroll
@@ -78,7 +96,7 @@ Screen: {
 	!:
 		lda MultiplyBy3,y   //calculate the y coordinate of the tile
 		sta TileY			//store it for the drawing function
-		tya 				//remember y so we can decrement it later
+		tya 				//remember y so we can increment it later
 		pha
 		jsr Random
 		and #%00000111
