@@ -2,8 +2,8 @@ Dinosaur: {
 * = * "Dinosaur data"
 //data 
 	.label RUNNING_DELAY = $10
-	.label RUNNING_LAST_FRAME = LAST_FRAME-running_frames
-	.label JUMP_COUNTER_INIT = jump_sine - JUMP_SINE_END - 1
+	.label RUNNING_LAST_FRAME = LAST_FRAME - running_frames
+	.label JUMP_COUNTER_INIT = JUMP_SINE_END - jump_sine - 1
 
 	.label STANDING_STATE = %00000000
 	.label RUNNING_STATE  = %00000001
@@ -22,14 +22,13 @@ Dinosaur: {
 	running_frames: .byte $c1, $c2
 	LAST_FRAME:
 
-	//we're capping the sine wave by the max height and subtracting it from the initial x value
-	jump_sine: .fill 128, SPRITE_0_Y_INITIAL_POSITION - sin((i/128) * (PI*2) * 0.5) * 30
+	*=* "jump_sine"
+	//we're capping the sine wave by the max height and subtracting it from the initial x value, number of values control the speed (128)
+	jump_sine: .for(var i=0;i<128;i+=2.5) .byte SPRITE_0_Y_INITIAL_POSITION - sin((i/128) * (PI*2) * 0.5) * 50
+	.fill 1, SPRITE_0_Y_INITIAL_POSITION  //make sure the sine ends with the start position
 	JUMP_SINE_END:
 
-	//jump_sine: .fill 10, 127.5 + 127.5*sin(toRadians(i*360/256)) // Generates a sine curve
-
 	Setup:
-
 			//set the frame of the sprite relative to the charset (default starts at $0000 and $c0 means $3000)
 			lda #$c0
 			lda #SPRITE_0_X_INDEX
