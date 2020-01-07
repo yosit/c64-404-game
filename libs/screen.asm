@@ -36,7 +36,6 @@ Screen: {
 		stx delay
 		rts
 	}
-*=* "ScrollThirdTile"
 	ScrollThirdTile: {
 		inc $d020
 		lda realOffset      //scroll the tiles only if we need to
@@ -79,8 +78,9 @@ Screen: {
 	scrollTileComplete: .byte $03
 	realOffset: .byte $c8
 	offset: .byte $07
-	delay: .byte delayScroll
-	.label delayScroll = $01
+	delay: .byte delayScroll	  //Counter to remember the delay
+	.label delayScroll = $01      //control how slow we want to scroll the land
+	
 	scrolledTile: .byte $03
 
 	TileTable: 	.byte 0, 1, 2, 40, 41, 42, 80, 81, 82

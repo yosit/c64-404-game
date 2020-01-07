@@ -1,5 +1,10 @@
 A replica of the chrome 404 dinosaur game for the c64
 
+Current Status:
+
+![](https://j.gifs.com/zvAr0O.gif) 
+
+
 Sprites under data are editable in https://www.spritemate.com/
 
 
