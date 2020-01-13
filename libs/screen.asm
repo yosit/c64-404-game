@@ -1,8 +1,17 @@
 *=* "Screen Code"
 Screen: {
-
 	Update: {
+
+					// the ugliest possible way to implement speed.
+					// a better way would be to subtract the speed from the scroll state and calculate if we need to scroll the 
+					// land and adjust $d016 accordingly
+		ldx speed
+	!:
+		stx speed_counter	
 		jsr ScrollScreen
+		ldx speed_counter
+		dex
+		bne !-
 		rts
 	}
 
@@ -31,7 +40,7 @@ Screen: {
 		pha
 		jsr ScrollThirdTile
 		pla
-		ldx #delayScroll
+		ldx #SCROLL_DELAY
 	!:
 		stx delay
 		rts
@@ -78,8 +87,11 @@ Screen: {
 	scrollTileComplete: .byte $03
 	realOffset: .byte $c8
 	offset: .byte $07
-	delay: .byte delayScroll	  //Counter to remember the delay
-	.label delayScroll = $01      //control how slow we want to scroll the land
+
+	speed: 				  .byte $01			//used to control the speed of the land
+	speed_counter: 		  .byte $01			//counter to keep tabs on the screen
+	delay: .byte SCROLL_DELAY	  //Counter to remember the delay
+	.label SCROLL_DELAY = $01      //control how slow we want to scroll the land
 	
 	scrolledTile: .byte $03
 
