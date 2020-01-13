@@ -11,7 +11,7 @@ Dinosaur: {
 
 	.label SPRITE_0_X_INDEX 	= $c0
 	.label SPRITE_0_X_INITIAL_POSITION 	= $40
-	.label SPRITE_0_Y_INITIAL_POSITION	= $90
+	.label SPRITE_0_Y_INITIAL_POSITION	= $88 //TODO: make sure we're positioning the player just above the ground so we can do collision detection
 
 	state: .byte RUNNING_STATE
 

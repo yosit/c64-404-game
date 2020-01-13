@@ -43,7 +43,8 @@ VIC: {
 
 	.label INTERRUPT_CONTROL = $d01a
 	
-	.label SPRITE_MULTICOLOR = $d01c
+	.label SPRITE_MULTICOLOR 			= $d01c
+	.label SPRITE_BACKGROUND_COLLISION = $d01f
 
 	.label BORDER_COLOR = $d020
 	.label BACKGROUND_COLOR = $d021
