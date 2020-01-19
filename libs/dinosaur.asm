@@ -1,32 +1,5 @@
 Dinosaur: {
-* = * "Dinosaur data"
-//data 
-	.label RUNNING_DELAY = $10
-	.label RUNNING_LAST_FRAME = LAST_FRAME - running_frames
-	.label JUMP_COUNTER_INIT = JUMP_SINE_END - jump_sine - 1
 
-	.label STANDING_STATE = %00000000
-	.label RUNNING_STATE  = %00000001
-	.label JUMPING_STATE  = %00000010
-
-	.label SPRITE_0_X_INDEX 	= $c0
-	.label SPRITE_0_X_INITIAL_POSITION 	= $40
-	.label SPRITE_0_Y_INITIAL_POSITION	= $88 //TODO: make sure we're positioning the player just above the ground so we can do collision detection
-
-	state: .byte RUNNING_STATE
-
-	jump_counter: .byte JUMP_COUNTER_INIT
-	running_delay_counter: .byte RUNNING_DELAY
-
-	running_frame_index: .byte $00
-	running_frames: .byte $c1, $c2
-	LAST_FRAME:
-
-	*=* "jump_sine"
-	//we're capping the sine wave by the max height and subtracting it from the initial x value, number of values control the speed (128)
-	jump_sine: .for(var i=0;i<128;i+=2.5) .byte SPRITE_0_Y_INITIAL_POSITION - sin((i/128) * (PI*2) * 0.5) * 50
-	.fill 1, SPRITE_0_Y_INITIAL_POSITION  //make sure the sine ends with the start position
-	JUMP_SINE_END:
 
 	Setup:
 			//set the frame of the sprite relative to the charset (default starts at $0000 and $c0 means $3000)
@@ -53,10 +26,27 @@ Dinosaur: {
 
 	Update:
 			lda state
+			cmp #COLLISION_STATE
+			bne !+
+			jmp AnimateCollision
+	!:		jsr detect_collision		
+
+			lda state
 			cmp #JUMPING_STATE
 			bne detect_jump
 			jmp AnimateJump
 
+	AnimateCollision:			//we might want to animate this.
+			rts
+	detect_collision:
+			lda VIC.SPRITE_BACKGROUND_COLLISION
+			and #DISOSAUR_SPRITE  			//checking 
+			beq !+
+			lda #COLLISION_STATE			//change the state for the dinosaur. 
+											//It's the other parts of the program responsibility to handle this
+			sta state
+	!:
+			rts
 	detect_jump:
 			lda VIC.JOYSTICK_1
 			cmp #$ef  //space bar pressed
@@ -104,5 +94,35 @@ Dinosaur: {
 			rts
 
 
+* = * "Dinosaur data"
+//data 
+	.label RUNNING_DELAY = $10
+	.label RUNNING_LAST_FRAME = LAST_FRAME - running_frames
+	.label JUMP_COUNTER_INIT = JUMP_SINE_END - jump_sine - 1
 
+	.label STANDING_STATE 	= %00000000
+	.label RUNNING_STATE  	= %00000001
+	.label JUMPING_STATE  	= %00000010
+	.label COLLISION_STATE  = %00000100
+
+	.label PLAYING_STATE 	= %00000011
+
+	.label SPRITE_0_X_INDEX 	= $c0
+	.label SPRITE_0_X_INITIAL_POSITION 	= $40
+	.label SPRITE_0_Y_INITIAL_POSITION	= $88 //TODO: make sure we're positioning the player just above the ground so we can do collision detection
+	.label DISOSAUR_SPRITE		= $01
+	state: .byte RUNNING_STATE
+
+	jump_counter: .byte JUMP_COUNTER_INIT
+	running_delay_counter: .byte RUNNING_DELAY
+
+	running_frame_index: .byte $00
+	running_frames: .byte $c1, $c2
+	LAST_FRAME:
+
+	*=* "jump_sine"
+	//we're capping the sine wave by the max height and subtracting it from the initial x value, number of values control the speed (128)
+	jump_sine: .for(var i=0;i<128;i+=2.5) .byte SPRITE_0_Y_INITIAL_POSITION - sin((i/128) * (PI*2) * 0.5) * 50
+	.fill 1, SPRITE_0_Y_INITIAL_POSITION  //make sure the sine ends with the start position
+	JUMP_SINE_END:
 }

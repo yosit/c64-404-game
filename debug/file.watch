@@ -1,0 +1,6 @@
+# <hex address> <watch name>
+
+08ac PLAYING_MASK
+
+# or 64tass style:
+# <watch name> = $<hex address>

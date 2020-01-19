@@ -1,7 +1,15 @@
 *=* "Screen Code"
 Screen: {
 	Update: {
+		lda Dinosaur.state
+		and #Dinosaur.PLAYING_STATE
+		beq !+						// if this is zero we're not playing
+		jsr UpdateScreen
+	!:
+		rts
 
+	}
+	UpdateScreen:{
 					// the ugliest possible way to implement speed.
 					// a better way would be to subtract the speed from the scroll state and calculate if we need to scroll the 
 					// land and adjust $d016 accordingly
@@ -83,26 +91,7 @@ Screen: {
 		dec $d020
 		rts
 	}
-	* = * "realoffset"
-	scrollTileComplete: .byte $03
-	realOffset: .byte $c8
-	offset: .byte $07
 
-	speed: 				  .byte $01			//used to control the speed of the land
-	speed_counter: 		  .byte $01			//counter to keep tabs on the screen
-	delay: .byte SCROLL_DELAY	  //Counter to remember the delay
-	.label SCROLL_DELAY = $01      //control how slow we want to scroll the land
-	
-	scrolledTile: .byte $03
-
-	TileTable: 	.byte 0, 1, 2, 40, 41, 42, 80, 81, 82
-	MultiplyBy3: .fill 15, i * $3 //0,3,6,9,12,15,18,21,24,27,30,33,36
-	LandTiles: .byte 1,2,1,2,1,2,1,2
-	NextTile: .byte $01
-	TileY: .byte $00
-	.label TileLookup = TileAbsolutePosition
-	LandStart: .word VIC.SCREEN_RAM+40*12
-	.label LandStartAddress = VIC.SCREEN_RAM+40*12
 	DrawLand: {
 		ldy #$00
 	!:
@@ -164,6 +153,26 @@ Screen: {
 		bne !-
 		rts
 	}
+
+		scrollTileComplete: .byte $03
+	realOffset: .byte $c8
+	offset: .byte $07
+
+	speed: 				  .byte $01			//used to control the speed of the land
+	speed_counter: 		  .byte $01			//counter to keep tabs on the screen
+	delay: .byte SCROLL_DELAY	  //Counter to remember the delay
+	.label SCROLL_DELAY = $01      //control how slow we want to scroll the land
+	
+	scrolledTile: .byte $03
+
+	TileTable: 	.byte 0, 1, 2, 40, 41, 42, 80, 81, 82
+	MultiplyBy3: .fill 15, i * $3 //0,3,6,9,12,15,18,21,24,27,30,33,36
+	LandTiles: .byte 1,2,1,4,1,2,1,2
+	NextTile: .byte $01
+	TileY: .byte $00
+	.label TileLookup = TileAbsolutePosition
+	LandStart: .word VIC.SCREEN_RAM+40*12
+	.label LandStartAddress = VIC.SCREEN_RAM+40*12
 }
 
 
