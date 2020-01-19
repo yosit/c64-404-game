@@ -154,7 +154,7 @@ Screen: {
 		rts
 	}
 
-		scrollTileComplete: .byte $03
+	scrollTileComplete: .byte $03
 	realOffset: .byte $c8
 	offset: .byte $07
 

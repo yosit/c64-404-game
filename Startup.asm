@@ -10,6 +10,7 @@ BasicUpstart2(Entry)
 #import "./libs/dinosaur.asm"
 #import "./libs/charset.asm"
 
+
 Entry:
 			jsr Random.init
 			jsr Setup.init

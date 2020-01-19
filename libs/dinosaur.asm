@@ -1,4 +1,14 @@
 Dinosaur: {
+	//we have to use the .var in order to nicely configure PLAYING_STATE
+	.const vSTANDING_STATE 	= %00000001
+	.const vRUNNING_STATE 	= %00000010
+	.const vJUMPING_STATE 	= %00000100
+	.const vCOLLISION_STATE = %00001000
+
+	.const STANDING_STATE 	= %00000001
+	.const RUNNING_STATE  	= %00000010
+	.const JUMPING_STATE  	= %00000100
+	.const COLLISION_STATE  = %00001000
 
 
 	Setup:
@@ -99,17 +109,11 @@ Dinosaur: {
 	.label RUNNING_DELAY = $10
 	.label RUNNING_LAST_FRAME = LAST_FRAME - running_frames
 	.label JUMP_COUNTER_INIT = JUMP_SINE_END - jump_sine - 1
-
-	.label STANDING_STATE 	= %00000000
-	.label RUNNING_STATE  	= %00000001
-	.label JUMPING_STATE  	= %00000010
-	.label COLLISION_STATE  = %00000100
-
-	.label PLAYING_STATE 	= %00000011
+	.label PLAYING_STATE 	= vRUNNING_STATE | vJUMPING_STATE
 
 	.label SPRITE_0_X_INDEX 	= $c0
 	.label SPRITE_0_X_INITIAL_POSITION 	= $40
-	.label SPRITE_0_Y_INITIAL_POSITION	= $88 //TODO: make sure we're positioning the player just above the ground so we can do collision detection
+	.label SPRITE_0_Y_INITIAL_POSITION	= $8d //TODO: make sure we're positioning the player just above the ground so we can do collision detection
 	.label DISOSAUR_SPRITE		= $01
 	state: .byte RUNNING_STATE
 
