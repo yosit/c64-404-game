@@ -2,64 +2,72 @@
 Screen: {
 	Update: {
 		lda Dinosaur.state
-		and #Dinosaur.PLAYING_STATE
+		and #Dinosaur.PLAYING_STATE // TODO: Change states to jump table.
 		beq !+						// if this is zero we're not playing
 		jsr UpdateScreen
 	!:
 		rts
 
 	}
+	// UpdateScreen:{
+	// 				// the ugliest possible way to implement speed.
+	// 				// a better way would be to subtract the speed from the scroll state and calculate if we need to scroll the 
+	// 				// land and adjust $d016 accordingly
+	// 	ldx speed
+	// !:
+	// 	stx speed_counter	
+	// 	jsr ScrollScreen
+	// 	ldx speed_counter
+	// 	dex
+	// 	bne !-
+	// 	rts
+	// }
+*=* "offset"
+	offset: .byte $07
+	speed: 	.byte $01			//used to control the speed of the land
+
 	UpdateScreen:{
-					// the ugliest possible way to implement speed.
-					// a better way would be to subtract the speed from the scroll state and calculate if we need to scroll the 
-					// land and adjust $d016 accordingly
-		ldx speed
-	!:
-		stx speed_counter	
-		jsr ScrollScreen
-		ldx speed_counter
-		dex
-		bne !-
+		// ldx delay
+		// dex
+		// bne skipDelay
+		lda offset
+		sec 
+		sbc speed
+		bpl !+		// we should skip and just set the scroll
+		and #$07
+		sta offset
+		lda #$01
+		sta shouldScrollLand
+		jsr ScrollThirdTile
+		jmp continueDelay
+	!:	sta offset
+
+	continueDelay:
+	// 	ldx #SCROLL_DELAY
+	// skipDelay:
+	// 	stx delay
 		rts
 	}
 
 	UpdateScrollState: {
-		lda realOffset
+		clc  
+		lda #$c0
+		adc offset
 		sta VIC.SCREEN_CONTROL_2
 		rts
 	}
 
-	ScrollScreen: {
-		lda realOffset
-		ldx delay
-		dex
-		bne !+
-		sec
-		lda offset
-		sbc #$01
-		and #$07
-		sta offset
-
-		clc
-		lda VIC.SCREEN_CONTROL_2
-		and #$f8
-		adc offset
-		sta realOffset
-		pha
-		jsr ScrollThirdTile
-		pla
-		ldx #SCROLL_DELAY
-	!:
-		stx delay
-		rts
-	}
 	ScrollThirdTile: {
 		inc $d020
-		lda realOffset      //scroll the tiles only if we need to
-		and #$07  			//if the screen is on the top most right position we need to scroll the tiles.
-		cmp #$07
+		// lda realOffset      //scroll the tiles only if we need to
+		// and #$07  			//if the screen is on the top most right position we need to scroll the tiles.
+		// cmp #$07
+		lda shouldScrollLand   //if the flag is on we should scroll the screen
+		cmp #$01
 		bne skip
+
 		ldx #$00
+		stx shouldScrollLand   //zero the scroll flag
 	!:
 		lda LandStartAddress+1,x
 		sta LandStartAddress,x
@@ -155,13 +163,11 @@ Screen: {
 	}
 
 	scrollTileComplete: .byte $03
-	realOffset: .byte $c8
-	offset: .byte $07
+	shouldScrollLand: .byte $00
 
-	speed: 				  .byte $01			//used to control the speed of the land
-	speed_counter: 		  .byte $01			//counter to keep tabs on the screen
+
 	delay: .byte SCROLL_DELAY	  //Counter to remember the delay
-	.label SCROLL_DELAY = $01      //control how slow we want to scroll the land
+	.label SCROLL_DELAY = $04      //control how slow we want to scroll the land
 	
 	scrolledTile: .byte $03
 

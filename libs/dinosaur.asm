@@ -49,6 +49,7 @@ Dinosaur: {
 	AnimateCollision:			//we might want to animate this.
 			rts
 	detect_collision:
+			rts  //skip for now
 			lda VIC.SPRITE_BACKGROUND_COLLISION
 			and #DISOSAUR_SPRITE  			//checking 
 			beq !+
