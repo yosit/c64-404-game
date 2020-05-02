@@ -3,13 +3,12 @@
 #import "./libs/vic.asm"
 BasicUpstart2(Entry)
 #import "./libs/screen.asm"
+#import "./libs/keyboard.asm"
 #import "./libs/irq.asm"
 #import "./libs/setup.asm"
 #import "./libs/utils.asm"
 
 #import "./libs/dinosaur.asm"
-#import "./libs/charset.asm"
-
 
 Entry:
 			jsr Random.init
@@ -25,22 +24,5 @@ Entry:
 			sta $01
 			jmp *
 
-		raster:
-			lda #$20
-		!:
-			cmp $d012
-			bne !-
-			inc $d020
-			jsr Dinosaur.Update
-			jsr Screen.DrawLand
 
-		dd:
-			dec $d020
-			jmp raster 
-
-			rts
-
-
-
-
-
+#import "./libs/charset.asm"

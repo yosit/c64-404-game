@@ -1,5 +1,7 @@
 *=* "Screen Code"
 Screen: {
+	speed: 	.byte $01			//used to control the speed of the land
+
 	Update: {
 		lda Dinosaur.state
 		and #Dinosaur.PLAYING_STATE // TODO: Change states to jump table.
@@ -9,22 +11,8 @@ Screen: {
 		rts
 
 	}
-	// UpdateScreen:{
-	// 				// the ugliest possible way to implement speed.
-	// 				// a better way would be to subtract the speed from the scroll state and calculate if we need to scroll the 
-	// 				// land and adjust $d016 accordingly
-	// 	ldx speed
-	// !:
-	// 	stx speed_counter	
-	// 	jsr ScrollScreen
-	// 	ldx speed_counter
-	// 	dex
-	// 	bne !-
-	// 	rts
-	// }
 *=* "offset"
 	offset: .byte $07
-	speed: 	.byte $01			//used to control the speed of the land
 
 	UpdateScreen:{
 		// ldx delay
