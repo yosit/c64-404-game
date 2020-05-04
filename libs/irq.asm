@@ -31,7 +31,7 @@ IRQ: {
 		:StoreState()
 			inc $d020
 			jsr Dinosaur.Update
-			jsr Keyboard.check_key_pressed
+			jsr Input.check_key_pressed
 			jsr Screen.Update
 			dec $d020
 			lda #<ScrollIRQ    

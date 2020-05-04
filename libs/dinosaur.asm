@@ -59,14 +59,11 @@ Dinosaur: {
 	!:
 			rts
 	detect_jump:
-			lda VIC.JOYSTICK_1
-			cmp #$ef  //space bar pressed
-			bne !+
-			lda #JUMPING_STATE
-			sta state
 			rts
 
-		!:	jsr AnimateRunning
+	set_jump:
+			lda #JUMPING_STATE
+			sta state
 			rts
 
 	AnimateJump:

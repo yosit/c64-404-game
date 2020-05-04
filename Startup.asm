@@ -3,6 +3,7 @@
 #import "./libs/vic.asm"
 BasicUpstart2(Entry)
 #import "./libs/screen.asm"
+#import "./libs/keyboard_io.asm"
 #import "./libs/keyboard.asm"
 #import "./libs/irq.asm"
 #import "./libs/setup.asm"
