@@ -1,9 +1,9 @@
 Dinosaur: {
 	//we have to use the .var in order to nicely configure PLAYING_STATE
 	.const vSTANDING_STATE 	= %00000001
-	.const vRUNNING_STATE 	= %00000010
-	.const vJUMPING_STATE 	= %00000100
-	.const vCOLLISION_STATE = %00001000
+	.const vRUNNING_STATE  	= %00000010
+	.const vJUMPING_STATE  	= %00000100
+	.const vCOLLISION_STATE  = %00001000
 
 	.const STANDING_STATE 	= %00000001
 	.const RUNNING_STATE  	= %00000010
@@ -41,6 +41,11 @@ Dinosaur: {
 			jmp AnimateCollision
 	!:		jsr detect_collision		
 
+			lda state
+			cmp #RUNNING_STATE
+			bne !+
+			jmp AnimateRunning
+	!:
 			lda state
 			cmp #JUMPING_STATE
 			bne detect_jump
