@@ -11,6 +11,9 @@ Setup: {
 		sta VIC.MEMORY_SETUP
 
 		jsr Screen.DrawLand
+		jsr Ambience.InitColors		//stub until WP-E — sets color RAM for day/night
+		jsr Sound.Init				//stub until WP-D — SID volume
+		jsr Score.Init				//stub until WP-B
 		rts
 	}
 	

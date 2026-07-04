@@ -10,6 +10,11 @@ BasicUpstart2(Entry)
 #import "./libs/utils.asm"
 
 #import "./libs/dinosaur.asm"
+#import "./libs/score.asm"
+#import "./libs/ptero.asm"
+#import "./libs/sound.asm"
+#import "./libs/ambience.asm"
+#import "./libs/game.asm"
 
 Entry:
 			jsr Random.init

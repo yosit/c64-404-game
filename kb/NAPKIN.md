@@ -42,6 +42,31 @@ Retro Debugger.
 - $7000 sprites
 - Keyboard scan scratch: $50–$5f (zeropage, per keyboard_io.asm)
 
+## Phase 0 — integration contract (LANDED 2026-07-04)
+
+The sequential contract layer from IMPLEMENTATION-PLAN §3 is done. Interfaces
+below are LOCKED; parallel WPs plug into them without editing each other.
+
+- **State machine is a jump table now.** `Dinosaur.state` holds an ordinal:
+  `ST_IDLE=0, ST_RUNNING=1, ST_JUMPING=2, ST_DUCKING=3, ST_DEAD=4` (all
+  `.label` so they export across scopes — `.const` in a `{}` scope does NOT
+  export, that was a build error). `Dinosaur.Update` dispatches via
+  `StateHandlers` (.word table, RTS-trick, entries store handler-1).
+  HandleIdle/HandleDucking/HandleDead are `rts` stubs for WPs to fill.
+- **`libs/game.asm` is the hub.** MainIRQ calls ONLY `jsr Game.Update` (opens
+  with `cld`). `Game.Update` fans out: Dinosaur → Input → Screen → Score →
+  Ptero → Sound → Ambience. `Game.Reset` fans out every module's Reset.
+  `Game.Crash` = crash entry point (producers call it): sets EV_CRASH +
+  ST_DEAD. `Game.events` byte: EV_JUMP=%001, EV_MILESTONE=%010, EV_CRASH=%100,
+  producers OR bits in, **Sound is the ONLY clearer** (runs last).
+- **Stub modules** (Update/Reset = rts): score.asm (has `score`/`hiscore`,
+  3 bytes BCD little-endian), ptero.asm, sound.asm, ambience.asm. Extra Init
+  hooks called from Setup.init: `Ambience.InitColors`, `Sound.Init`,
+  `Score.Init`. `Screen.Reset` redraws land + resets offset/speed/tileColumn.
+- Import order in Startup.asm: score, ptero, sound, ambience, game (after
+  dinosaur). Boot state still ST_RUNNING (WP-A flips to ST_IDLE for start
+  screen). Verified: normal build pixel-identical to 6e1e54d; demo auto-jumps.
+
 ## Decisions
 
 - (2026-07-04) Keep a napkin KB in `kb/` — short notes, updated alongside
@@ -102,6 +127,15 @@ x64sc -warp -autostartprgmode 1 -limitcycles 8000000 \
 - Take two shots at different `-limitcycles` to confirm the land scrolls.
 - Needs `GSETTINGS_SCHEMA_DIR=$(brew --prefix)/share/glib-2.0/schemas`.
 - Gray side-border bars in shots = the inc/dec $d020 IRQ timing debug, normal.
+- **CRITICAL TIMING (measured 2026-07-04):** with `-autostartprgmode 1` the
+  emulated BASIC "READY." + auto-RUN eats ~2.5M cycles BEFORE the game's
+  first frame. So game-frame N ≈ 2.5M + N*19656 cycles (PAL: 19656 cyc/frame).
+  The DEMO first auto-jump (frame 180) lands at **~6.2M cycles**, NOT 3.5M.
+  Budget headless screenshots from a ~2.5M-cycle origin, not 0.
+- `make demo` = build with `-define DEMO` → `Game.DemoDrive` synthesises input
+  (auto-jump every 180 frames, auto-restart 120 frames after death). This is
+  the ONLY way to exercise input headlessly (keys can't be pressed while
+  Kernal is banked out).
 
 ## Ground / collision geometry (locked 2026-07-04)
 

@@ -3,13 +3,30 @@ Screen: {
 	speed: 	.byte $01			//used to control the speed of the land
 
 	Update: {
+		//Scroll only while in a playing state (RUNNING/JUMPING/DUCKING = 1..3).
+		//IDLE (0) and DEAD (4) freeze the land.
 		lda Dinosaur.state
-		and #Dinosaur.PLAYING_STATE // TODO: Change states to jump table.
-		beq !+						// if this is zero we're not playing
+		beq !+						// ST_IDLE — not playing
+		cmp #Dinosaur.ST_DEAD
+		beq !+						// ST_DEAD — not playing
 		jsr UpdateScreen
 	!:
 		rts
 
+	}
+
+	//Full land reset — called from Game.Reset. Redraw land from scratch,
+	//reset scroll offset/speed and re-prime the hidden feed column.
+	Reset: {
+		lda #$07
+		sta offset
+		lda #$01
+		sta speed
+		lda #$00
+		sta tileColumn
+		sta shouldScrollLand
+		jsr DrawLand				//redraws land AND re-primes column 39
+		rts
 	}
 *=* "offset"
 	offset: .byte $07

@@ -27,12 +27,10 @@ IRQ: {
 		rts
 	}
 
-	MainIRQ: {		
+	MainIRQ: {
 		:StoreState()
 			inc $d020
-			jsr Dinosaur.Update
-			jsr Input.check_key_pressed
-			jsr Screen.Update
+			jsr Game.Update		//all per-frame game logic lives behind this one call
 			dec $d020
 			lda #<ScrollIRQ    
 			ldx #>ScrollIRQ

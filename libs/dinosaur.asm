@@ -1,19 +1,16 @@
 Dinosaur: {
-	//we have to use the .var in order to nicely configure PLAYING_STATE
-	.const vSTANDING_STATE 	= %00000001
-	.const vRUNNING_STATE  	= %00000010
-	.const vJUMPING_STATE  	= %00000100
-	.const vCOLLISION_STATE  = %00001000
-
-	.const STANDING_STATE 	= %00000001
-	.const RUNNING_STATE  	= %00000010
-	.const JUMPING_STATE  	= %00000100
-	.const COLLISION_STATE  = %00001000
-
+	//State ordinals — index into StateHandlers below. A byte `state`
+	//holds the ordinal; Update dispatches through the .word table via the
+	//RTS trick (each entry stores handler-1). Empty handlers (IDLE, DUCKING,
+	//DEAD) are stubs that later work packages fill in.
+	.label ST_IDLE    = 0
+	.label ST_RUNNING = 1
+	.label ST_JUMPING = 2
+	.label ST_DUCKING = 3
+	.label ST_DEAD    = 4
 
 	Setup:
 			//set the frame of the sprite relative to the charset (default starts at $0000 and $c0 means $3000)
-			lda #$c0
 			lda #SPRITE_0_X_INDEX
 			sta VIC.SPRITE_0_POINTER
 
@@ -27,48 +24,73 @@ Dinosaur: {
 			lda VIC.SPRITE_ENABLE
 			ora #$01
 			sta VIC.SPRITE_ENABLE
-			
+
 			lda #$08 // sprite multicolor 1
 			sta VIC.SPRITE_MULTICOLOR_1
 			lda #$06 // sprite multicolor 2
 			sta VIC.SPRITE_MULTICOLOR_2
 			rts
 
+	//Full reset of the dino to a fresh running state — called from Game.Reset.
+	Reset:
+			lda #ST_RUNNING
+			sta state
+			lda #SPRITE_0_Y_INITIAL_POSITION
+			sta VIC.SPRITE_0_Y
+			lda #JUMP_COUNTER_INIT
+			sta jump_counter
+			lda #RUNNING_DELAY
+			sta running_delay_counter
+			lda #$00
+			sta running_frame_index
+			lda #$c1
+			sta VIC.SPRITE_0_POINTER
+			rts
+
 	Update:
 			lda state
-			cmp #COLLISION_STATE
-			bne !+
-			jmp AnimateCollision
-	!:		jsr detect_collision		
+			asl						//*2 for the .word table
+			tax
+			lda StateHandlers+1,x
+			pha
+			lda StateHandlers,x
+			pha
+			rts						//RTS trick: jump to StateHandlers[state]
 
-			lda state
-			cmp #RUNNING_STATE
-			bne !+
+	HandleIdle:					//WP-A fills (start screen)
+			rts
+
+	HandleRunning:
+			jsr detect_collision
 			jmp AnimateRunning
-	!:
-			lda state
-			cmp #JUMPING_STATE
-			bne detect_jump
+
+	HandleJumping:
+			jsr detect_collision
 			jmp AnimateJump
 
-	AnimateCollision:			//we might want to animate this.
+	HandleDucking:				//WP-C fills (duck animation)
 			rts
+
+	HandleDead:					//WP-A fills (death animation)
+			rts
+
+	//WP-A un-stubs this: read $d01f ONCE per frame (reads clear it),
+	//and #%00000001, on a set bit route to the crash path.
 	detect_collision:
 			rts  //skip for now
 			lda VIC.SPRITE_BACKGROUND_COLLISION
-			and #DISOSAUR_SPRITE  			//checking 
+			and #DINOSAUR_SPRITE
 			beq !+
-			lda #COLLISION_STATE			//change the state for the dinosaur. 
-											//It's the other parts of the program responsibility to handle this
-			sta state
+			jsr Game.Crash
 	!:
-			rts
-	detect_jump:
 			rts
 
 	set_jump:
-			lda #JUMPING_STATE
+			lda #ST_JUMPING
 			sta state
+			lda Game.events				//producer: announce the jump for Sound (WP-D)
+			ora #Game.EV_JUMP
+			sta Game.events
 			rts
 
 	AnimateJump:
@@ -76,7 +98,7 @@ Dinosaur: {
 			dex
 			bne !+
 			ldx #JUMP_COUNTER_INIT
-			lda #RUNNING_STATE
+			lda #ST_RUNNING
 			sta state
 		!:
 			stx jump_counter
@@ -108,17 +130,16 @@ Dinosaur: {
 
 
 * = * "Dinosaur data"
-//data 
+//data
 	.label RUNNING_DELAY = $10
 	.label RUNNING_LAST_FRAME = LAST_FRAME - running_frames
 	.label JUMP_COUNTER_INIT = JUMP_SINE_END - jump_sine - 1
-	.label PLAYING_STATE 	= vRUNNING_STATE | vJUMPING_STATE
 
 	.label SPRITE_0_X_INDEX 	= $c0
 	.label SPRITE_0_X_INITIAL_POSITION 	= $40
 	.label SPRITE_0_Y_INITIAL_POSITION	= $8d //TODO: make sure we're positioning the player just above the ground so we can do collision detection
-	.label DISOSAUR_SPRITE		= $01
-	state: .byte RUNNING_STATE
+	.label DINOSAUR_SPRITE		= $01
+	state: .byte ST_RUNNING
 
 	jump_counter: .byte JUMP_COUNTER_INIT
 	running_delay_counter: .byte RUNNING_DELAY
@@ -126,6 +147,15 @@ Dinosaur: {
 	running_frame_index: .byte $00
 	running_frames: .byte $c1, $c2
 	LAST_FRAME:
+
+	//Dispatch table for Update — order MUST match the ST_* ordinals.
+	//RTS-trick convention: store (handler address - 1).
+	StateHandlers:
+		.word HandleIdle-1
+		.word HandleRunning-1
+		.word HandleJumping-1
+		.word HandleDucking-1
+		.word HandleDead-1
 
 	*=* "jump_sine"
 	//we're capping the sine wave by the max height and subtracting it from the initial x value, number of values control the speed (128)

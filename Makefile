@@ -14,7 +14,7 @@ BINDIR  := bin
 PRG     := $(BINDIR)/404.prg
 SYMBOLS := $(BINDIR)/Startup.vs
 
-.PHONY: all build run clean charset
+.PHONY: all build demo run clean charset
 
 all: build
 
@@ -28,6 +28,13 @@ build: charset $(PRG)
 $(PRG): $(SRC) $(wildcard libs/*.asm) $(wildcard data/*.asm) $(wildcard tools/glyphs/*.txt)
 	@mkdir -p $(BINDIR)
 	$(JAVA) -jar $(KICKASS) $(SRC) -o $(PRG) -vicesymbols
+
+# DEMO build: defines DEMO so Game.DemoDrive synthesises input (jump/duck/
+# restart) for headless screenshot verification — keys can't be pressed while
+# the Kernal is banked out. Rebuilds unconditionally (separate flag, no cache).
+demo: charset
+	@mkdir -p $(BINDIR)
+	$(JAVA) -jar $(KICKASS) $(SRC) -o $(PRG) -vicesymbols -define DEMO
 
 # Build then launch in the VICE C64 emulator.
 # GSETTINGS_SCHEMA_DIR works around the Homebrew GTK build not finding its
