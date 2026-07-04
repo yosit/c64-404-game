@@ -130,3 +130,33 @@ din_dead:
 .byte $04,$00,$40,$0c,$00,$20,$18,$00
 .byte $10,$98,$00,$19,$50,$00,$0a,$50
 .byte $00,$09,$48,$00,$0f,$78,$00,$03
+
+// ---------------------------------------------------------------------------
+// WP-E clouds — APPENDED AT THE END. Integration concatenates all WP appends
+// in pointer order, so in the merged build these become the last two 64-byte
+// sprite blocks and land at pointers $ca / $cb ($7000 + $ca*64 = $7280 etc.).
+// Single-color, drawn light grey (VIC.SPRITE_COLOR_2/3). Puffy cloud shapes,
+// pixels only in the top ~11 rows so the visible blob sits high on screen.
+// ---------------------------------------------------------------------------
+
+// $ca cloud A (wider puff)
+cloud_a:
+.byte $00,$00,$00,$00,$00,$00,$07,$c0
+.byte $00,$0f,$f0,$00,$1f,$f8,$00,$3f
+.byte $fe,$00,$7f,$ff,$80,$7f,$ff,$c0
+.byte $3f,$ff,$e0,$0f,$ff,$c0,$01,$fe
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$0f
+
+// $cb cloud B (smaller puff)
+cloud_b:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$03,$e0,$00,$07,$f8,$00,$0f
+.byte $fc,$00,$1f,$fe,$00,$3f,$ff,$00
+.byte $3f,$ff,$00,$1f,$fe,$00,$03,$f0
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$0f
