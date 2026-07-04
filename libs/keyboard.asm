@@ -14,10 +14,16 @@ Input: {
 	        // Check A for Alphanumeric keys
 	        cmp #$18 //'x'
 	        bne !+
+	    	ldx Screen.speed
+	    	cpx #$07			//clamp at 7 — UpdateScreen wraps offset mod 8
+	    	bcs !+
 	    	inc Screen.speed
 	    !:
 	    	cmp #$1a //'z'
 	    	bne !+
+	    	ldx Screen.speed
+	    	cpx #$02			//clamp at 1 — 0 freezes the land, underflow breaks sbc
+	    	bcc !+
 	    	dec Screen.speed
 	    !:
 	    	cmp #$20 // ' '  space/port 1 fire

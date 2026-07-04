@@ -66,25 +66,43 @@ Screen: {
 		inx
 		cpx #$27
 		bne !-
-	!:	
-		ldx scrollTileComplete //check if we need to add another tile on the far right side when we scrolled 3 chars.
-		dex
-		bne !+
 
-		lda #$24     		//calculate the y coordinate of the tile
-		sta TileY			//store it for the drawing function
-		jsr Random
+		jsr FeedTileColumn	//refill column 39, hidden behind the border in 38-col mode
+	skip:
+		dec $d020
+		rts
+	}
+
+	//Writes the next column of NextTile into screen column 39, one column per
+	//scroll step, so tiles slide in smoothly from behind the right border
+	//(the land rows run in 38-column mode, so column 39 is never visible).
+	FeedTileColumn: {
+		ldx tileColumn
+		bne !+				//mid-tile: keep feeding its next column
+		jsr Random			//starting a new tile: pick a random one
 		and #%00000111
 		tay
 		lda LandTiles,y
 		sta NextTile
-		jsr DrawTile		
-
-		ldx #$03
 	!:
-		stx scrollTileComplete
-	skip:
-		dec $d020
+		multiplyby9(NextTile)
+		sta feedChar
+		txa
+		clc
+		adc feedChar		//A = tile base char + column index
+		sta LandStartAddress+$27
+		clc
+		adc #$03			//chars within a tile are laid out row-major, +3 per row
+		sta LandStartAddress+$4f
+		clc
+		adc #$03
+		sta LandStartAddress+$77
+		inx
+		cpx #$03
+		bne !+
+		ldx #$00
+	!:
+		stx tileColumn
 		rts
 	}
 
@@ -106,6 +124,7 @@ Screen: {
 		iny
 		cpy #$0d			//we want 13 tiles on screen (40/3 ~ 13)
 		bne !-
+		jsr FeedTileColumn	//prime column 39 so the first shift pulls in a real char
 		rts
 	}
 
@@ -150,7 +169,8 @@ Screen: {
 		rts
 	}
 
-	scrollTileComplete: .byte $03
+	tileColumn: .byte $00	//which column (0-2) of NextTile enters next
+	feedChar: .byte $00		//scratch for FeedTileColumn
 	shouldScrollLand: .byte $00
 
 
