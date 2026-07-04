@@ -167,13 +167,12 @@ this is mechanical; it is the price of safe parallelism.
    - `libs/ptero.asm`, `libs/sound.asm`, `libs/ambience.asm`: Update/Reset rts.
    - `Screen.Reset` in screen.asm: redraw land, reset offset/=7, speed=1,
      tileColumn=0, re-prime col 39.
-5. **Charset patch pipeline** `tools/`:
-   - `tools/glyphs/*.txt` — one file per glyph set, 8 lines of 8 `.#`
-     chars per glyph, header line `char <index>`. Each WP adds its own
-     .txt files → **no merge conflicts in the tool**.
-   - `tools/patch_charset.py` — reads all glyph files, patches
-     `data/everything-charset.bin` in place (idempotent), run via new
-     `make charset` target which `build` depends on.
+5. **Charset patch pipeline** — ALREADY BUILT (2026-07-04):
+   `tools/patch_charset.py` + `tools/glyphs/*.txt` (`char <index>` header,
+   8 rows of 8 `.#`), wired as `make charset`, a `build` dependency,
+   idempotent, and it errors on duplicate char definitions across files.
+   Each WP adds its own .txt files → no merge conflicts. See
+   `tools/glyphs/ground-no-collide.txt` for the format in action.
 6. **DEMO mode for headless verification** (critical: keys can't be pressed
    headlessly — the game scans the CIA matrix and Kernal is banked out):
    `#if DEMO` blocks, enabled by `make demo` (KickAss `-define DEMO`):
@@ -202,11 +201,10 @@ conflict policy in §5.
 ### WP-A — Obstacles, collision, game over, restart  (owns: screen.asm obstacle feed, dinosaur.asm DEAD handler, game.asm restart logic, glyphs 45–89, sprite $c9)
 
 **A1. Cactus tiles.** Design 3 cactus tiles (glyph .txt files, chars 45–71).
-Constraint: cactus pixels should fill enough of the 3×3 char block that
-"dino column overlaps cactus column" ≈ "visual overlap" (software collision
-is column-based, §A3). Land rows are 12–14; cacti sit ON the land: their
-glyphs live in the same 3 rows (tall cactus uses rows 12–13 visually, the
-tile's bottom row blends into ground pattern).
+Constraint: cactus body pixels live in land rows 12–13 (y 146–161, the
+dino-touchable zone — that is what $d01f keys on, §A3); the tile's row-14
+base blends into the ground line. Draw them solid enough that a pixel
+graze reads as a fair hit.
 
 **A2. Obstacle spawning through the feed.** In screen.asm: with probability
 ~1/6 when `FeedTileColumn` picks a new tile AND a minimum-gap counter has
@@ -218,20 +216,20 @@ during jump = 53 frames * speed px / 8 px-per-col ≈ 6.6 cols at speed 1,
 46 cols at speed 7 — so min gap of ~8 tiles (24 cols) is safe for all
 speeds; tune by playing). Track `columnsUntilCactusAllowed` byte.
 
-**A3. Collision — SOFTWARE, not $d01f.** The dino sprite bottom (Y=141+21
-=162) permanently overlaps the land-row chars (rows start at py 146), so
-the VIC sprite-background register fires constantly on plain ground — it
-is useless here without redesigning the ground art. Instead:
-- Dino occupies screen columns 5–7 (X=64px, cols (64-24)/8 = 5, sprite
-  24px wide → cols 5,6,7). Precompute the three screen-RAM addresses for
-  rows 12–13 at those columns ($5000 + 12*40 + 5 …).
-- Each frame in the RUNNING/DUCKING state: read those 6 chars; if any is
-  in [CACTUS_FIRST..CACTUS_LAST] → crash. In JUMPING state: only check if
-  `VIC.SPRITE_0_Y > JUMP_CLEAR_Y` (dino low enough to clip a cactus;
-  compute from cactus visual height ≈ row 12 top = py 146 → sprite bottom
-  162 > 146 → clear when Y < 125; use the sine table values).
-- Cost: ~60 cycles/frame. Deterministic, no hardware quirks. Delete or
-  repurpose the $d01f stub.
+**A3. Collision — HARDWARE $d01f (ground art fixed 2026-07-04 to allow it).**
+The ground was made collision-silent: all plain-ground tiles (1, 2, and
+the trimmed tile 4) have pixels only in land row 14 (screen y≥162), while
+the running dino's lowest pixel is y=161 — so on plain ground $d01f NEVER
+fires, and any set bit 0 means "dino pixel touched obstacle pixel".
+Pixel-perfect for free, like Chrome.
+- Un-stub Dinosaur.detect_collision: read $d01f ONCE per frame (reads
+  clear it — single reader rule), `and #%00000001`, branch to crash.
+- HARD RULE for cactus art: cactus pixels live in land rows 12–13
+  (y 146–161) where the dino can touch them; their row-14 base may merge
+  into the ground line. HARD RULE for any future plain-ground art: row 14
+  only (enforced location: tools/glyphs/ — see ground-no-collide.txt).
+- Works identically while JUMPING (sprite is higher, overlap = real graze).
+  No Y-threshold logic needed.
 
 **A4. Game over.** On crash: `Game.events |= EV_CRASH`, state=ST_DEAD,
 dino sprite ptr = $c9 (dead frame), stop land scroll (Screen.Update
@@ -409,8 +407,11 @@ Integration agent duties:
 ## 7. Open design decisions already made (do not relitigate)
 
 - Cacti are chars in the scroll feed, not sprites.
-- Dino-vs-cactus collision is software (screen RAM column check), NOT
-  $d01f (ground contact makes it useless).
+- Dino-vs-cactus collision is hardware $d01f — made possible by trimming
+  tile 4's plant top (chars 39–41 blanked via tools/glyphs/) so plain
+  ground has pixels only in row 14 (y≥162), below the dino's y=161 bottom.
+  Plain-ground art must NEVER put pixels above row 14 (this is what keeps
+  $d01f meaningful).
 - Ptero/duck collision IS hardware ($d01e), clouds kept out of its way by
   the Y<60 rule.
 - Score is BCD with explicit sed/cld inside the IRQ.

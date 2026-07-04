@@ -80,7 +80,9 @@ Still open:
 
 ## Open questions / TODO
 
-See [PLAN.md](PLAN.md) for the full roadmap to Chrome-dino parity
+See [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md) for the deep
+parallel-agent plan (resource tables, Phase-0 skeleton, WP-A..E, merge
+protocol) and [PLAN.md](PLAN.md) for the full roadmap to Chrome-dino parity
 (milestones: obstacles+death+restart → score+difficulty → ptero+duck → polish).
 
 - Obstacles (cacti) + collision handling (COLLISION_STATE exists, unused?)
@@ -100,6 +102,19 @@ x64sc -warp -autostartprgmode 1 -limitcycles 8000000 \
 - Take two shots at different `-limitcycles` to confirm the land scrolls.
 - Needs `GSETTINGS_SCHEMA_DIR=$(brew --prefix)/share/glib-2.0/schemas`.
 - Gray side-border bars in shots = the inc/dec $d020 IRQ timing debug, normal.
+
+## Ground / collision geometry (locked 2026-07-04)
+
+- Land rows 12/13/14 = screen y 146–153 / 154–161 / 162–169.
+- Dino sprite: Y=$8d → pixels y 141–161 (jump only goes UP from there).
+- Plain-ground art rule: **pixels in row 14 only (y≥162)** → running dino
+  never touches ground art → $d01f == "hit an obstacle", pixel-perfect.
+- Enforced by blanking tile 4's plant top (chars 39–41) via
+  `tools/glyphs/ground-no-collide.txt`; tiles 1/2 were already row-14-only.
+- Charset patch pipeline: `make charset` (auto-run by build) applies
+  `tools/glyphs/*.txt` via `tools/patch_charset.py`, idempotent,
+  duplicate-char definitions across files are a build error.
+- $d01f reads clear it → exactly ONE reader per frame (detect_collision).
 
 ## Gotchas
 

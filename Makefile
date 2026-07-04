@@ -14,14 +14,18 @@ BINDIR  := bin
 PRG     := $(BINDIR)/404.prg
 SYMBOLS := $(BINDIR)/Startup.vs
 
-.PHONY: all build run clean
+.PHONY: all build run clean charset
 
 all: build
 
-# Assemble Startup.asm -> bin/404.prg (with VICE symbol file for debugging)
-build: $(PRG)
+# Patch glyphs from tools/glyphs/*.txt into the charset binary (idempotent)
+charset:
+	python3 tools/patch_charset.py
 
-$(PRG): $(SRC) $(wildcard libs/*.asm) $(wildcard data/*.asm)
+# Assemble Startup.asm -> bin/404.prg (with VICE symbol file for debugging)
+build: charset $(PRG)
+
+$(PRG): $(SRC) $(wildcard libs/*.asm) $(wildcard data/*.asm) $(wildcard tools/glyphs/*.txt)
 	@mkdir -p $(BINDIR)
 	$(JAVA) -jar $(KICKASS) $(SRC) -o $(PRG) -vicesymbols
 
