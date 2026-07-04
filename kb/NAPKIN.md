@@ -108,16 +108,34 @@ non-ZP .byte). $02–$03 tile pos, $50–$5f keyboard.
   it.** The grey side bars in screenshots are that meter, working as intended.
 - GAME OVER blank char: WP-A used $20 (a land tile) for the space → fixed to $ff.
 
+### Controls (current)
+- **Space** — start / jump / restart (context-sensitive `set_jump`).
+- **D** (held) — duck. `Input.ScanDuck` reads the D key directly off CIA1
+  (column PA2 = `$dc00` bit 2, row PB2 = `$dc01` bit 2) because the TWW scan
+  is edge-triggered and can't report a held key; held → `Dinosaur.set_duck`,
+  released → `set_run`.
+- **z / x** — debug speed down / up.
+
 ### Integration TODOs (not yet done)
-- **Wire the duck key into Input** (keyboard.asm): call `Dinosaur.set_duck`
-  while joystick-2 down (or a chosen key) is held, `Dinosaur.set_run` on
-  release. Both guards are state-safe. Until then, duck is unreachable by a
-  player (works in code/collision).
 - Cosmetic: a cloud sprite can drift across the HI/score text (both up high) —
   harmless, sprite draws over the chars.
 - Still-open housekeeping: DrawTile carry fragility, dead vars in screen.asm
   (delay/SCROLL_DELAY/scrolledTile), optional joystick jump support.
 - SID audio needs a human listen via `make debug`.
+
+## Art & tooling (2026-07-04, post-integration)
+
+- **Dino redrawn** (Chrome-style T-rex, stand + 2 run frames). Editable ASCII
+  source in `tools/sprites/dino.txt`; `tools/make_sprite.py <art>` converts a
+  24x21 `.`/`#` grid → KickAss `.byte` block (preserves meta byte). Paste over
+  din_stand/din_walk_0/din_walk_1 in data/sprites.asm.
+- **Ground redrawn**: crisp continuous line + sparse pebbles/tuft
+  (tools/glyphs/ground-no-collide.txt). Still row-14-only (y>=162); dino's
+  lowest pixel is y161, so $d01f stays collision-silent on plain ground.
+- **Makefile**: `make demo` now writes `bin/404-demo.prg` (separate from the
+  normal `bin/404.prg`). They used to share the file, so after `make demo` the
+  stale auto-playing demo binary got launched by `make build`/`make debug`
+  (the "dino jumps on its own" report). Normal vs demo never collide now.
 
 ## Decisions
 
