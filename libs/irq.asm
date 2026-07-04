@@ -40,8 +40,8 @@ IRQ: {
 			lda #$90
 			sta $d012
 			lda $d011
-			and #%11111111
-			sta $d011	
+			and #%01111111		//clear the raster-compare MSB (bit 8); target lines are <256
+			sta $d011
 
 			asl $d019 //Acknowledging the interrupt
 		:RestoreState();
@@ -62,8 +62,8 @@ IRQ: {
 			lda #$b0
 			sta $d012
 			lda $d011
-			and #%11111111
-			sta $d011	
+			and #%01111111		//clear the raster-compare MSB (bit 8); target lines are <256
+			sta $d011
 
 			asl $d019 //Acknowledging the interrupt
 		:RestoreState();

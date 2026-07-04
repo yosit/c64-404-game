@@ -1,5 +1,5 @@
-//loads a byte from arg address and multiply it by 3.
-//output Register A
+//loads a byte from arg address and multiplies it by 9 (asl x3 = *8, + arg = *9).
+//Used to index 3x3 tiles (9 chars each) in the charset. Output: Register A.
 .macro multiplyby9(arg) {
 		clc
 		lda arg
