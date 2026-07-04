@@ -68,7 +68,18 @@ Dinosaur: {
 			jsr detect_collision
 			jmp AnimateJump
 
-	HandleDucking:				//WP-C fills (duck animation)
+	HandleDucking:				//WP-C: crouched dino, high pteros pass overhead
+			jsr detect_collision		//a cactus can still hit a crouched dino
+			ldx duck_delay_counter
+			dex
+			bne !+
+			ldx #RUNNING_DELAY			//reuse the run cadence
+			lda duck_frame
+			eor #($c5 ^ $c6)			//toggle $c5<->$c6
+			sta duck_frame
+			sta VIC.SPRITE_0_POINTER
+		!:
+			stx duck_delay_counter
 			rts
 
 	HandleDead:					//WP-A fills (death animation)
@@ -162,4 +173,52 @@ Dinosaur: {
 	jump_sine: .for(var i=0;i<128;i+=2.5) .byte SPRITE_0_Y_INITIAL_POSITION - sin((i/128) * (PI*2) * 0.5) * 50
 	.fill 1, SPRITE_0_Y_INITIAL_POSITION  //make sure the sine ends with the start position
 	JUMP_SINE_END:
+
+	// ===== WP-C additions (duck mechanic) — additive, distinct region =====
+	// Keyboard is NOT owned by WP-C. Input (keyboard.asm) must call
+	// Dinosaur.set_duck while the duck key is held and Dinosaur.set_run on
+	// release. Recommended key: joystick-2 DOWN ($dc00 bit 1 clear) or matrix
+	// key '.' — see report/NAPKIN. Guards make both entry points safe from any
+	// state (only RUNNING<->DUCKING transitions act; jump/dead/idle untouched).
+	//
+	// Duck sprites $c5/$c6 are bottom-aligned in the sprite cell, so the
+	// crouched dino keeps the runner's ground Y ($8d): duck Y offset = 0, no
+	// vertical pop when toggling. $d01e is pixel-perfect, so the low duck
+	// silhouette IS the hitbox — head-height pteros clear it.
+	set_duck:
+			lda state
+			cmp #ST_RUNNING				//only crouch from a clean run
+			bne set_duck_done
+			lda #ST_DUCKING
+			sta state
+			lda #$c5					//duck frame A
+			sta duck_frame
+			sta VIC.SPRITE_0_POINTER
+			lda #RUNNING_DELAY
+			sta duck_delay_counter
+			lda #SPRITE_0_Y_INITIAL_POSITION	//stay on the ground (offset 0)
+			sta VIC.SPRITE_0_Y
+	set_duck_done:
+			rts
+
+	set_run:
+			lda state
+			cmp #ST_DUCKING				//only stand up if currently ducking
+			bne set_run_done
+			lda #ST_RUNNING
+			sta state
+			lda #SPRITE_0_Y_INITIAL_POSITION
+			sta VIC.SPRITE_0_Y
+			lda #$00					//restart the run frame cycle
+			sta running_frame_index
+			lda #RUNNING_DELAY
+			sta running_delay_counter
+			lda #$c1
+			sta VIC.SPRITE_0_POINTER
+	set_run_done:
+			rts
+
+	duck_frame:          .byte $c5
+	duck_delay_counter:  .byte RUNNING_DELAY
+	// ===== end WP-C additions =====
 }

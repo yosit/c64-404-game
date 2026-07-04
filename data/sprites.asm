@@ -58,3 +58,59 @@ sprite_1:
 .byte $07,$ff,$c0,$0f,$ff,$e0,$1f,$ff
 .byte $f0,$9f,$ff,$f9,$df,$ff,$fb,$df
 .byte $ff,$f9,$cf,$ff,$ff,$ff,$ff,$03
+
+// ===================================================================
+// WP-C appended sprites (pterodactyl + duck). APPEND-ONLY; order fixes
+// the pointer values: $c5=$7140 duck A, $c6=$7180 duck B,
+// $c7=$71c0 ptero flap A (wings up), $c8=$7200 ptero flap B (wings down).
+// Single-color, 63 bytes + 1 meta byte (meta low nibble = color $03).
+// ===================================================================
+
+// sprite 5 / singlecolor / color: $03  (WP-C) duck frame A  ptr $c5
+// Long low crouching dino, head forward (right). Art is bottom-aligned in
+// the sprite cell (top pixel at sprite row 11) so at the unchanged dino
+// ground Y=$8d its feet still sit on the ground line — duck Y offset = 0.
+duck_a:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$3c,$00,$00,$7e,$0f
+.byte $ff,$ee,$1f,$ff,$fa,$3f,$ff,$fc
+.byte $3f,$ff,$ee,$1f,$ff,$de,$07,$03
+.byte $40,$07,$03,$40,$0f,$07,$40,$03
+
+// sprite 6 / singlecolor / color: $03  (WP-C) duck frame B  ptr $c6
+// Same body as duck A, legs stepped (run-cadence animation swap).
+duck_b:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$3c,$00,$00,$7e,$0f
+.byte $ff,$ee,$1f,$ff,$fa,$3f,$ff,$fc
+.byte $3f,$ff,$ee,$1f,$ff,$de,$03,$07
+.byte $00,$03,$07,$00,$07,$0f,$00,$03
+
+// sprite 7 / singlecolor / color: $03  (WP-C) ptero wings-up  ptr $c7
+// Pterodactyl facing left (beak at left), wings raised above the body.
+ptero_a:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $f0,$f0,$00,$79,$c0,$00,$3f,$30
+.byte $0f,$ff,$30,$ff,$7f,$a0,$3f,$7f
+.byte $80,$03,$7f,$00,$00,$fc,$00,$00
+.byte $70,$00,$00,$60,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$03
+
+// sprite 8 / singlecolor / color: $03  (WP-C) ptero wings-down ptr $c8
+// Same body core, wings lowered below the body (flap frame B).
+ptero_b:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $0f,$ff,$30,$ff,$7f,$a0,$3f,$7f
+.byte $80,$03,$7f,$00,$00,$ff,$60,$00
+.byte $79,$c0,$00,$30,$70,$00,$00,$38
+.byte $00,$00,$00,$00,$00,$00,$00,$03
