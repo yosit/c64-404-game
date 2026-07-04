@@ -73,14 +73,14 @@ Game: {
 			rts
 	}
 	ClearGameOver: {
-			lda #$20					//blank
+			lda #$ff					//blank (custom charset: $ff is the true blank, $20 is a land tile)
 			ldx #GAMEOVER_LEN-1
 	!:		sta GAMEOVER_ROW + GAMEOVER_COL,x
 			dex
 			bpl !-
 			rts
 	}
-	GameOverText: .byte $bc,$bd,$be,$bf,$20,$c0,$c1,$bf,$c2	//G A M E _ O V E R
+	GameOverText: .byte $bc,$bd,$be,$bf,$ff,$c0,$c1,$bf,$c2	//G A M E _ O V E R ($ff = blank space)
 
 #if DEMO
 	// Headless verification driver: keys can't be pressed while Kernal is
