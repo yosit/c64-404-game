@@ -27,8 +27,9 @@ Game: {
 
 	// Full game reset — each module owns its part.
 	Reset: {
+			jsr ClearGameOver		//WP-A: wipe the GAME OVER banner
 			jsr Screen.Reset
-			jsr Dinosaur.Reset
+			jsr Dinosaur.Reset		//restores the running sprite frame ($c1)
 			jsr Score.Reset
 			jsr Ptero.Reset
 			jsr Ambience.Reset
@@ -44,8 +45,42 @@ Game: {
 			sta events
 			lda #Dinosaur.ST_DEAD
 			sta Dinosaur.state
+			lda #DEAD_DINO_SPRITE			//WP-A: swap in the dead (X-eyed) dino frame
+			sta VIC.SPRITE_0_POINTER
+			lda #Dinosaur.SPRITE_0_Y_INITIAL_POSITION	//drop to the ground if we crashed mid-jump
+			sta VIC.SPRITE_0_Y
+			jsr DrawGameOver				//WP-A: banner
 			rts
 	}
+
+	.label DEAD_DINO_SPRITE = $c9			//sprite pointer of din_dead (data/sprites.asm)
+
+	//"GAME OVER" banner on screen row 8. The letter glyphs (chars 186-199)
+	//are owned by WP-B; here we only write the char CODES, so the text shows
+	//as blanks until WP-B's letter glyphs merge, then renders correctly.
+	//Char-code map (documented for WP-B/integration):
+	//  G=$bc(188) A=$bd(189) M=$be(190) E=$bf(191) O=$c0(192) V=$c1(193) R=$c2(194)
+	//  (space = $20). "GAME OVER" centred at cols 16-24 of row 8.
+	.label GAMEOVER_ROW = VIC.SCREEN_RAM + 40*8
+	.label GAMEOVER_COL = 16
+	.label GAMEOVER_LEN = 9
+	DrawGameOver: {
+			ldx #GAMEOVER_LEN-1
+	!:		lda GameOverText,x
+			sta GAMEOVER_ROW + GAMEOVER_COL,x
+			dex
+			bpl !-
+			rts
+	}
+	ClearGameOver: {
+			lda #$20					//blank
+			ldx #GAMEOVER_LEN-1
+	!:		sta GAMEOVER_ROW + GAMEOVER_COL,x
+			dex
+			bpl !-
+			rts
+	}
+	GameOverText: .byte $bc,$bd,$be,$bf,$20,$c0,$c1,$bf,$c2	//G A M E _ O V E R
 
 #if DEMO
 	// Headless verification driver: keys can't be pressed while Kernal is

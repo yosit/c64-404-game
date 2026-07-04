@@ -25,6 +25,8 @@ Screen: {
 		lda #$00
 		sta tileColumn
 		sta shouldScrollLand
+		lda #CACTUS_GAP_START		//grace period before cacti resume
+		sta columnsUntilCactusAllowed
 		jsr DrawLand				//redraws land AND re-primes column 39
 		rts
 	}
@@ -95,13 +97,10 @@ Screen: {
 	//(the land rows run in 38-column mode, so column 39 is never visible).
 	FeedTileColumn: {
 		ldx tileColumn
-		bne !+				//mid-tile: keep feeding its next column
-		jsr Random			//starting a new tile: pick a random one
-		and #%00000111
-		tay
-		lda LandTiles,y
-		sta NextTile
-	!:
+		bne feedCol			//mid-tile: keep feeding its next column
+		jsr PickNextTile	//starting a new tile: land tile or (sometimes) a cactus
+		ldx tileColumn		//still 0 here; reload for the column feed below
+	feedCol:
 		multiplyby9(NextTile)
 		sta feedChar
 		txa
@@ -120,6 +119,38 @@ Screen: {
 		ldx #$00
 	!:
 		stx tileColumn
+		rts
+	}
+
+	//Choose the next full tile into NextTile. WP-A obstacle spawner:
+	//normally a land tile, but with ~1/6 odds AND once the post-cactus
+	//minimum gap has elapsed, a cactus tile (5/6/7) instead. Uses A/Y only
+	//(X is preserved for FeedTileColumn's column counter).
+	PickNextTile: {
+		jsr Random
+		sta cactusRand
+		lda columnsUntilCactusAllowed
+		beq gapReady			//gap elapsed: a cactus is allowed
+		dec columnsUntilCactusAllowed
+		jmp pickLand
+	gapReady:
+		lda cactusRand
+		cmp #CACTUS_ODDS		//~1/6 of 256 -> spawn a cactus
+		bcs pickLand
+		lda cactusRand			//pick which cactus (tiles 5/6/7)
+		and #%00000011
+		tay
+		lda CactusTiles,y
+		sta NextTile
+		lda #CACTUS_GAP_TILES	//force a clear run before the next cactus
+		sta columnsUntilCactusAllowed
+		rts
+	pickLand:
+		lda cactusRand
+		and #%00000111
+		tay
+		lda LandTiles,y
+		sta NextTile
 		rts
 	}
 
@@ -189,6 +220,14 @@ Screen: {
 	tileColumn: .byte $00	//which column (0-2) of NextTile enters next
 	feedChar: .byte $00		//scratch for FeedTileColumn
 	shouldScrollLand: .byte $00
+
+	//WP-A obstacle spawner state
+	columnsUntilCactusAllowed: .byte CACTUS_GAP_START	//tiles left before a cactus may spawn
+	cactusRand: .byte $00								//scratch: this tile's random byte
+	CactusTiles: .byte 5,6,7,5							//cactus tile ids (low 2 bits of random)
+	.label CACTUS_ODDS       = 43	//~1/6 (43/256 = 0.168) chance per new tile
+	.label CACTUS_GAP_TILES  = 8	//>=8 normal tiles (24 cols) after a cactus — jumpable at speed 7
+	.label CACTUS_GAP_START  = 6	//grace period: no cactus for the first few tiles at boot/reset
 
 
 	delay: .byte SCROLL_DELAY	  //Counter to remember the delay
