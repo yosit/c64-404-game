@@ -58,3 +58,19 @@ sprite_1:
 .byte $07,$ff,$c0,$0f,$ff,$e0,$1f,$ff
 .byte $f0,$9f,$ff,$f9,$df,$ff,$fb,$df
 .byte $ff,$f9,$cf,$ff,$ff,$ff,$ff,$03
+
+// ===== WP-A: dead dino (sprite pointer $c9) =====
+// Self-located at $7000 + 9*64 = $7240 so its pointer value is exactly $c9
+// no matter how many sprites WP-C ($c5-$c8) appends before it. The gap in
+// between (this WP-A branch alone) is harmless filler — WP-C fills it at merge.
+// Derived from din_stand with the eye X-ed out (death pose).
+* = $7000 + 9*64 "din_dead"
+din_dead:
+.byte $00,$3f,$f0,$00,$40,$10,$00,$54
+.byte $08,$00,$48,$08,$00,$54,$08,$00
+.byte $41,$f8,$00,$40,$20,$60,$c3,$e0
+.byte $a1,$83,$80,$a3,$00,$80,$9e,$02
+.byte $80,$8c,$03,$80,$80,$02,$00,$80
+.byte $04,$00,$40,$0c,$00,$20,$18,$00
+.byte $10,$98,$00,$19,$50,$00,$0a,$50
+.byte $00,$09,$48,$00,$0f,$78,$00,$03

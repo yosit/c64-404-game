@@ -57,35 +57,60 @@ Dinosaur: {
 			pha
 			rts						//RTS trick: jump to StateHandlers[state]
 
-	HandleIdle:					//WP-A fills (start screen)
-			rts
+	HandleIdle:					//start screen: dino stands, land frozen (Screen.Update
+			rts					//gates on state). First space -> set_jump starts the run.
 
 	HandleRunning:
 			jsr detect_collision
+			lda state					//if the collision just killed us, don't animate
+			cmp #ST_DEAD				//(would overwrite the $c9 dead frame with a run frame)
+			beq !+
 			jmp AnimateRunning
+	!:		rts
 
 	HandleJumping:
 			jsr detect_collision
+			lda state
+			cmp #ST_DEAD
+			beq !+
 			jmp AnimateJump
+	!:		rts
 
 	HandleDucking:				//WP-C fills (duck animation)
 			rts
 
-	HandleDead:					//WP-A fills (death animation)
-			rts
+	HandleDead:					//dead pose is static — Game.Crash set sprite $c9 and
+			rts					//the GAME OVER text; nothing to animate each frame.
 
-	//WP-A un-stubs this: read $d01f ONCE per frame (reads clear it),
-	//and #%00000001, on a set bit route to the crash path.
+	//Collision — hardware $d01f (sprite<->background). Read ONCE per frame
+	//(reads clear it: single-reader rule), bit 0 = dino (sprite 0) touched a
+	//foreground pixel. Plain ground is collision-silent (row-14-only art), so
+	//a set bit 0 always means the dino grazed a cactus. Works identically
+	//while jumping (a real graze means the sprite overlapped the cactus art).
 	detect_collision:
-			rts  //skip for now
 			lda VIC.SPRITE_BACKGROUND_COLLISION
-			and #DINOSAUR_SPRITE
+			and #%00000001
 			beq !+
 			jsr Game.Crash
 	!:
 			rts
 
+	//Space is context-sensitive (keeps keyboard.asm untouched):
+	//  ST_DEAD  -> restart the game
+	//  ST_IDLE  -> start running
+	//  else     -> jump
 	set_jump:
+			lda state
+			cmp #ST_DEAD
+			bne !+
+			jmp Game.Reset			//restart (Game.Reset -> Dinosaur.Reset sets ST_RUNNING)
+	!:
+			cmp #ST_IDLE
+			bne doJump
+			lda #ST_RUNNING			//start the run
+			sta state
+			rts
+	doJump:
 			lda #ST_JUMPING
 			sta state
 			lda Game.events				//producer: announce the jump for Sound (WP-D)
@@ -139,7 +164,7 @@ Dinosaur: {
 	.label SPRITE_0_X_INITIAL_POSITION 	= $40
 	.label SPRITE_0_Y_INITIAL_POSITION	= $8d //TODO: make sure we're positioning the player just above the ground so we can do collision detection
 	.label DINOSAUR_SPRITE		= $01
-	state: .byte ST_RUNNING
+	state: .byte ST_IDLE		//boot into the idle/start screen; first space -> running
 
 	jump_counter: .byte JUMP_COUNTER_INIT
 	running_delay_counter: .byte RUNNING_DELAY
