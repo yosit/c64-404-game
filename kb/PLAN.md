@@ -5,39 +5,40 @@ Ordered by dependency. Tick items as they land; details/gotchas go in
 
 ## Milestone 1 — it becomes a game
 
-- [ ] **Cacti obstacles** as chars (not sprites) so they ride the existing
-      char scroll for free. Cactus tiles in charset, fed through
-      `FeedTileColumn` (needs row(s) above the land strip). Random spacing
-      with a minimum gap so every pattern is jumpable.
-- [ ] **Collision → game over**: un-stub `Dinosaur.detect_collision` —
-      hardware sprite-to-background register $d01f (already read there).
-      On hit: COLLISION state, freeze scroll, dead-dino frame.
-- [ ] **Restart**: space from COLLISION resets land/score/speed → RUNNING.
+- [x] **Cacti obstacles** as chars fed through `FeedTileColumn` (WP-A). Tiles
+      5/6/7 (chars 45–71), ~1/6 odds with an 8-tile min gap.
+- [x] **Collision → game over**: `Dinosaur.detect_collision` reads $d01f once/
+      frame; on hit → `Game.Crash` (ST_DEAD, dead sprite $c9, GAME OVER banner,
+      scroll frozen).
+- [x] **Restart**: space in ST_DEAD → `Game.Reset` → RUNNING (context-sensitive
+      `set_jump`, keeps keyboard.asm untouched).
 
 ## Milestone 2 — replayability
 
-- [ ] **Score**: distance counter, char digits top-right, blink every 100.
-- [ ] **High score** in RAM, shown next to score (HI xxxxx).
-- [ ] **Progressive speed**: auto-increment `Screen.speed` (cap 7) by score;
-      z/x debug keys already exercise the mechanism.
+- [x] **Score**: 3-byte BCD, digits at row 0 cols 34–38, blink every 100 (WP-B).
+- [x] **High score** (survives restart), "HI xxxxx" at cols 24–32.
+- [x] **Progressive speed**: `Screen.speed` +1 per 100 pts, cap 7. z/x keys kept.
 
 ## Milestone 3 — full mechanics
 
-- [ ] **Pterodactyl**: sprite 1, 2 flap frames, spawns at 2–3 heights after
-      a score threshold; sprite-sprite collision via $d01e.
-- [ ] **Duck**: duck-run sprite frames, down key / joystick down, to dodge
-      high pterodactyls.
+- [x] **Pterodactyl** (WP-C): hw sprite 1, 2 flap frames ($c7/$c8), spawns after
+      score>300 at 2 heights; $d01e sprite-sprite collision → Game.Crash.
+- [x] **Duck** (WP-C): duck frames $c5/$c6, `Dinosaur.set_duck`/`set_run`,
+      recommended joystick-2 down. NOTE: key still needs wiring into Input
+      (keyboard.asm) — see NAPKIN "Integration TODOs".
 
 ## Milestone 4 — polish
 
-- [ ] **Clouds**: slow parallax sprites.
-- [ ] **Day/night**: flip bg/char colors at score thresholds.
-- [ ] **SID sound**: jump blip, milestone blip, crash noise.
-- [ ] **Idle/start state**: standing dino, "press space" to start
-      (STANDING state exists, unused).
-- [ ] **Housekeeping**: irq.asm `and #$ff` no-ops, DrawTile carry fragility,
-      dead vars (delay/SCROLL_DELAY/scrolledTile), DISOSAUR typo, joystick
-      support ($dc01 label already in vic.asm).
+- [x] **Clouds** (WP-E): parallax hw sprites 2/3 ($ca/$cb), Y<60.
+- [x] **Day/night** (WP-E): $d021 flips at 500-pt bands; grey color RAM keeps
+      text legible on black. Writes only on transition (regression fix).
+- [x] **SID sound** (WP-D): jump/milestone/crash on voice 1 (needs human audio
+      check via `make debug`).
+- [x] **Idle/start state** (WP-A): boots ST_IDLE, first space starts.
+- [~] **Housekeeping**: irq.asm `and #$ff` no-ops FIXED; multiplyby9 comment
+      FIXED; DINOSAUR typo fixed. STILL OPEN: DrawTile carry fragility, dead
+      vars (delay/SCROLL_DELAY/scrolledTile), joystick support. inc/dec $d020
+      raster-cycle debug KEPT (user uses it as a cycle meter — do not remove).
 
 ## Status
 

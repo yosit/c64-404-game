@@ -67,6 +67,58 @@ below are LOCKED; parallel WPs plug into them without editing each other.
   dinosaur). Boot state still ST_RUNNING (WP-A flips to ST_IDLE for start
   screen). Verified: normal build pixel-identical to 6e1e54d; demo auto-jumps.
 
+## Integration complete — all WPs merged (2026-07-04)
+
+Phase 0 + WP-A..E merged (A→B→C→D→E) and verified headless. Full game loop
+runs: idle → run → cacti/ptero → crash → GAME OVER → restart, with score,
+high score, progressive speed, clouds, day/night, and SID sfx.
+
+### New modules & flow
+- `libs/game.asm` (hub): MainIRQ → `Game.Update` → Dinosaur, Input, Screen,
+  Score, Ptero, Sound, Ambience. `Game.Reset` fans out; `Game.Crash` is the
+  shared crash entry (dino-vs-cactus $d01f in dinosaur.asm, ptero $d01e in
+  ptero.asm both call it). `Game.events` bus: EV_JUMP/MILESTONE/CRASH, Sound
+  is the sole clearer (runs last).
+- `score.asm` (WP-B), `ptero.asm` (WP-C), `sound.asm` (WP-D), `ambience.asm`
+  (WP-E) — all filled.
+
+### Char map (patched via tools/glyphs/*.txt at `make charset`)
+- 0–44 land tiles 0–4 · 45–53 cactus tile 5 · 54–62 tile 6 · 63–71 tile 7
+  (WP-A) · 174 existing · 176–185 digits 0–9 · 186–199 letters
+  H I G A M E O V R (WP-B; blank glyph is **$ff**, NOT $20 — $20 is a land tile).
+
+### Sprite map (data/sprites.asm, pointer = $c0 + block index)
+- $c0–$c4 existing (dino stand/walk0/walk1 + 2 spare) · $c5/$c6 duck A/B ·
+  $c7/$c8 ptero flap A/B (WP-C) · $c9 dead dino (WP-A, self-located $7240) ·
+  $ca/$cb clouds A/B (WP-E). Append ORDER matters (positional pointers):
+  c5,c6,c7,c8,c9,ca,cb.
+- HW slots: 0 dino, 1 ptero (WP-C), 2/3 clouds (WP-E, Y<60 keeps $d01e clean),
+  4–7 free.
+
+### ZP allocation honored: $04–$07 WP-A (unused in the end), $08–$0b WP-B
+(unused), $0c WP-C (ptero step), $10–$13 WP-D/E (unused; modules keep state in
+non-ZP .byte). $02–$03 tile pos, $50–$5f keyboard.
+
+### Regression found & fixed at integration
+- **Black top band** (intermittent, heavy frames): WP-E's UpdateDayNight wrote
+  $d020/$d021 EVERY frame from inside Game.Update (visible raster position),
+  racing the inc/dec $d020 timing debug. Fixed: day/night writes background
+  $d021 only on an actual transition, never touches the border. **The inc/dec
+  $d020 raster-cycle debug is intentional (user's cycle meter) — do NOT remove
+  it.** The grey side bars in screenshots are that meter, working as intended.
+- GAME OVER blank char: WP-A used $20 (a land tile) for the space → fixed to $ff.
+
+### Integration TODOs (not yet done)
+- **Wire the duck key into Input** (keyboard.asm): call `Dinosaur.set_duck`
+  while joystick-2 down (or a chosen key) is held, `Dinosaur.set_run` on
+  release. Both guards are state-safe. Until then, duck is unreachable by a
+  player (works in code/collision).
+- Cosmetic: a cloud sprite can drift across the HI/score text (both up high) —
+  harmless, sprite draws over the chars.
+- Still-open housekeeping: DrawTile carry fragility, dead vars in screen.asm
+  (delay/SCROLL_DELAY/scrolledTile), optional joystick jump support.
+- SID audio needs a human listen via `make debug`.
+
 ## Decisions
 
 - (2026-07-04) Keep a napkin KB in `kb/` — short notes, updated alongside
