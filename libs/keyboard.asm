@@ -30,6 +30,24 @@ Input: {
 	    	bne !+
 	    	jsr Dinosaur.set_jump //TODO: consider changing that since space might not always be used for jump
 	    !:
+	    	jsr ScanDuck		//held-key duck ('D')
 	    	rts
+	}
+
+	// The TWW keyboard routine is edge-triggered (reports only NEW keypresses),
+	// which is perfect for jump but can't tell us a key is being HELD. Ducking
+	// needs hold state, so scan the 'D' key straight off the CIA1 matrix:
+	// D sits at column PA2 ($dc00 bit 2) / row PB2 ($dc01 bit 2). The DDRs were
+	// already configured by the Keyboard call above. set_duck/set_run are
+	// guarded (only RUNNING<->DUCKING act), so calling them every frame is safe.
+	ScanDuck: {
+	    	lda #%11111011		//drive PA2 low (select D's column)
+	    	sta $dc00
+	    	lda $dc01
+	    	and #%00000100		//PB2 — D's row bit; 0 = pressed
+	    	bne released
+	    	jmp Dinosaur.set_duck	//held -> crouch
+	    released:
+	    	jmp Dinosaur.set_run	//released -> stand back up
 	}
 }
