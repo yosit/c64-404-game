@@ -26,11 +26,9 @@ Ambience: {
 	.label CLOUD_COLOR   = $0f			//light grey clouds
 	.label DAY_BG        = $06			//blue background (matches the original look)
 	.label NIGHT_BG      = $00			//black background
-	// Border is written from inside MainIRQ AFTER its `inc $d020`; MainIRQ's
-	// closing `dec $d020` then subtracts 1, so the border RESTS at (written-1).
-	// Pre-increment the target by 1 so the resting color is what we want:
-	.label DAY_BORDER    = $0f			//rests at $0e (light blue) — matches baseline
-	.label NIGHT_BORDER  = $01			//rests at $00 (black)
+	// Border ($d020) is intentionally NOT written by day/night — it belongs to
+	// the dev-only inc/dec $d020 raster-timing debug. Day/night flips only the
+	// background latch $d021, once per transition (see UpdateDayNight).
 
 	Update: {
 			jsr UpdateClouds
@@ -219,22 +217,29 @@ Ambience: {
 			bcc setNight			//tens < 5 -> night
 			// tens >= 5 -> day, fall through
 
+		// Only write the color register on an ACTUAL day<->night transition.
+		// $d021 is a latch, so one write per phase change holds for the whole
+		// phase. Writing every frame would land mid-Game.Update (visible raster
+		// position) and race the inc/dec $d020 timing debug -> black top band.
+		// Border ($d020) is left to the timing debug entirely (dev-only bars).
 		setDay:
+			lda nightFlag
+			beq noChange			//already day
 			lda #DAY_BG
 			sta VIC.BACKGROUND_COLOR
-			lda #DAY_BORDER
-			sta VIC.BORDER_COLOR
 			lda #$00
 			sta nightFlag
+		noChange:
 			rts
 
 		setNight:
+			lda nightFlag
+			bne noChange2			//already night
 			lda #NIGHT_BG
 			sta VIC.BACKGROUND_COLOR
-			lda #NIGHT_BORDER
-			sta VIC.BORDER_COLOR
 			lda #$ff
 			sta nightFlag
+		noChange2:
 			rts
 	}
 
