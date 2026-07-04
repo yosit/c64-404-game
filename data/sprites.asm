@@ -59,11 +59,67 @@ sprite_1:
 .byte $f0,$9f,$ff,$f9,$df,$ff,$fb,$df
 .byte $ff,$f9,$cf,$ff,$ff,$ff,$ff,$03
 
+// ===================================================================
+// WP-C appended sprites (pterodactyl + duck). APPEND-ONLY; order fixes
+// the pointer values: $c5=$7140 duck A, $c6=$7180 duck B,
+// $c7=$71c0 ptero flap A (wings up), $c8=$7200 ptero flap B (wings down).
+// Single-color, 63 bytes + 1 meta byte (meta low nibble = color $03).
+// ===================================================================
+
+// sprite 5 / singlecolor / color: $03  (WP-C) duck frame A  ptr $c5
+// Long low crouching dino, head forward (right). Art is bottom-aligned in
+// the sprite cell (top pixel at sprite row 11) so at the unchanged dino
+// ground Y=$8d its feet still sit on the ground line — duck Y offset = 0.
+duck_a:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$3c,$00,$00,$7e,$0f
+.byte $ff,$ee,$1f,$ff,$fa,$3f,$ff,$fc
+.byte $3f,$ff,$ee,$1f,$ff,$de,$07,$03
+.byte $40,$07,$03,$40,$0f,$07,$40,$03
+
+// sprite 6 / singlecolor / color: $03  (WP-C) duck frame B  ptr $c6
+// Same body as duck A, legs stepped (run-cadence animation swap).
+duck_b:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$3c,$00,$00,$7e,$0f
+.byte $ff,$ee,$1f,$ff,$fa,$3f,$ff,$fc
+.byte $3f,$ff,$ee,$1f,$ff,$de,$03,$07
+.byte $00,$03,$07,$00,$07,$0f,$00,$03
+
+// sprite 7 / singlecolor / color: $03  (WP-C) ptero wings-up  ptr $c7
+// Pterodactyl facing left (beak at left), wings raised above the body.
+ptero_a:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $f0,$f0,$00,$79,$c0,$00,$3f,$30
+.byte $0f,$ff,$30,$ff,$7f,$a0,$3f,$7f
+.byte $80,$03,$7f,$00,$00,$fc,$00,$00
+.byte $70,$00,$00,$60,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$03
+
+// sprite 8 / singlecolor / color: $03  (WP-C) ptero wings-down ptr $c8
+// Same body core, wings lowered below the body (flap frame B).
+ptero_b:
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $0f,$ff,$30,$ff,$7f,$a0,$3f,$7f
+.byte $80,$03,$7f,$00,$00,$ff,$60,$00
+.byte $79,$c0,$00,$30,$70,$00,$00,$38
+.byte $00,$00,$00,$00,$00,$00,$00,$03
+
 // ===== WP-A: dead dino (sprite pointer $c9) =====
-// Self-located at $7000 + 9*64 = $7240 so its pointer value is exactly $c9
-// no matter how many sprites WP-C ($c5-$c8) appends before it. The gap in
-// between (this WP-A branch alone) is harmless filler — WP-C fills it at merge.
-// Derived from din_stand with the eye X-ed out (death pose).
+// Self-located at $7000 + 9*64 = $7240 so its pointer value is exactly $c9.
+// Follows WP-C's $c5-$c8 (which end at $723f), so the PC is already at $7240
+// here — the explicit address just documents/pins it. WP-E's clouds ($ca,$cb)
+// append after this at $7280/$72c0. Derived from din_stand, eye X-ed out.
 * = $7000 + 9*64 "din_dead"
 din_dead:
 .byte $00,$3f,$f0,$00,$40,$10,$00,$54
