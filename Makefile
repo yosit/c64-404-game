@@ -9,10 +9,15 @@ KICKASS ?= $(HOME)/.local/kickass/KickAss.jar
 JAVA    ?= java
 X64     ?= x64sc
 
-SRC     := Startup.asm
-BINDIR  := bin
-PRG     := $(BINDIR)/404.prg
-SYMBOLS := $(BINDIR)/Startup.vs
+SRC       := Startup.asm
+BINDIR    := bin
+PRG       := $(BINDIR)/404.prg
+SYMBOLS   := $(BINDIR)/Startup.vs
+# DEMO build gets its OWN output so it can never clobber the normal PRG —
+# otherwise `make demo` leaves a stale auto-playing binary that `make
+# build`/`make debug` treat as up-to-date and launch by mistake.
+DEMOPRG   := $(BINDIR)/404-demo.prg
+DEMOSYM   := $(BINDIR)/404-demo.vs
 
 .PHONY: all build demo run clean charset
 
@@ -31,10 +36,11 @@ $(PRG): $(SRC) $(wildcard libs/*.asm) $(wildcard data/*.asm) $(wildcard tools/gl
 
 # DEMO build: defines DEMO so Game.DemoDrive synthesises input (jump/duck/
 # restart) for headless screenshot verification — keys can't be pressed while
-# the Kernal is banked out. Rebuilds unconditionally (separate flag, no cache).
+# the Kernal is banked out. Writes bin/404-demo.prg so it can NEVER clobber the
+# normal PRG (a stale demo binary was being launched by `make debug`).
 demo: charset
 	@mkdir -p $(BINDIR)
-	$(JAVA) -jar $(KICKASS) $(SRC) -o $(PRG) -vicesymbols -define DEMO
+	$(JAVA) -jar $(KICKASS) $(SRC) -o $(DEMOPRG) -vicesymbols -define DEMO
 
 # Build then launch in the VICE C64 emulator.
 # GSETTINGS_SCHEMA_DIR works around the Homebrew GTK build not finding its
